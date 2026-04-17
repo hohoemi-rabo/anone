@@ -36,7 +36,10 @@ app/
 ├── sign-in.tsx          # ログイン画面（開発用 Email/Password）
 ├── sign-up.tsx          # アカウント作成画面（開発用）
 ├── child-register.tsx   # 子ども登録画面（初回オンボーディング）
-├── modal.tsx            # モーダル画面
+├── modal.tsx            # モーダル画面（placeholder）
+├── diary/[id]/
+│   ├── index.tsx        # 日記詳細モーダル
+│   └── edit.tsx         # 日記編集モーダル
 └── (tabs)/
     ├── _layout.tsx      # BottomTab 4タブ構成
     ├── index.tsx        # ホーム（日記一覧）
@@ -95,7 +98,7 @@ components/
 | 05 | 日記作成画面 | ✅ 完了 |
 | 06 | ホーム画面（日記一覧） | ✅ 完了 |
 | 07 | 画像処理 | ✅ 完了 |
-| 08 | 日記詳細モーダル | 未着手 |
+| 08 | 日記詳細モーダル | ✅ 完了 |
 | 09 | 思い出画面 | 未着手 |
 | 10 | 設定画面 | 未着手 |
 | 11 | 家族共有 | 未着手 |

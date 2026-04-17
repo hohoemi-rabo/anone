@@ -36,6 +36,24 @@ export default function RootLayout() {
           <Stack.Protected guard={isLoggedIn && auth.hasChild}>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+            <Stack.Screen
+              name="diary/[id]/index"
+              options={{
+                presentation: 'modal',
+                title: '',
+                animation: 'slide_from_right',
+                animationDuration: 350,
+              }}
+            />
+            <Stack.Screen
+              name="diary/[id]/edit"
+              options={{
+                presentation: 'modal',
+                title: '編集',
+                animation: 'slide_from_right',
+                animationDuration: 350,
+              }}
+            />
           </Stack.Protected>
           <Stack.Protected guard={needsChildRegistration}>
             <Stack.Screen name="child-register" options={{ headerShown: false }} />

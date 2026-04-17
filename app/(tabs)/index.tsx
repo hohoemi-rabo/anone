@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Alert, FlatList, Pressable, RefreshControl, StyleSheet } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useFocusEffect, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { ChildHeader } from '@/components/child-header'
@@ -90,6 +90,15 @@ export default function HomeScreen() {
     }
   }, [childId, fetchEntries, fetchOneYearAgo])
 
+  useFocusEffect(
+    useCallback(() => {
+      if (childId) {
+        fetchEntries()
+        fetchOneYearAgo()
+      }
+    }, [childId, fetchEntries, fetchOneYearAgo]),
+  )
+
   useEffect(() => {
     const allEntries = oneYearAgoEntry ? [oneYearAgoEntry, ...entries] : entries
     const resolve = async () => {
@@ -174,9 +183,7 @@ export default function HomeScreen() {
               : null
           }
           birthday={child.birthday}
-          onPress={() => {
-            // チケット08で日記詳細モーダル実装
-          }}
+          onPress={() => router.push(`/diary/${oneYearAgoEntry.id}`)}
         />
       </ThemedView>
     )
@@ -196,9 +203,7 @@ export default function HomeScreen() {
             text={item.text}
             photoUrl={item.photo_url ? signedUrls[item.photo_url] ?? null : null}
             birthday={child.birthday}
-            onPress={() => {
-              // チケット08で日記詳細モーダル実装
-            }}
+            onPress={() => router.push(`/diary/${item.id}`)}
             onLongPress={
               item.author_id === session?.user.id ? () => handleDelete(item) : undefined
             }
