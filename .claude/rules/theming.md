@@ -14,3 +14,11 @@ globs: constants/theme*,hooks/use-color-scheme*,hooks/use-theme-color*,component
 
 - ダークモード対応は `useThemeColor` フックを通じて行う
 - コンポーネントに直接カラーコードをハードコードしない
+- ボタン背景に `tint` を使用する場合、テキスト色は `useThemeColor({}, 'background')` で取得（ダークモードで tint が白、テキストも白だと見えなくなる）
+
+## 共通コンポーネント
+
+- `ThemedText`: テーマ対応テキスト（type: default, title, defaultSemiBold, subtitle, link）
+- `ThemedView`: テーマ対応ビュー（背景色自動）
+- `ChildHeader`: 子どもの名前 + 生後日数/年齢ヘッダー（`useChild` + `getAgeDisplay` 使用）
+- `DiaryCard`: 日記カード（日付、年齢、テキスト3行省略、サムネイル）

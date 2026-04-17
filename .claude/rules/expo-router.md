@@ -4,28 +4,39 @@ globs: app/**
 
 # Expo Router ルール
 
-## 認証フロー
+## 認証フロー（3段階 Stack.Protected）
 
-`Stack.Protected` を使い、`guard` prop で認証状態に応じたルートの出し分けを行う。未認証ユーザーがディープリンクでアクセスしても適切にリダイレクトされる。
+`Stack.Protected` を使い、`guard` prop で3段階のルート出し分けを行う:
 
 ```tsx
 <Stack>
-  <Stack.Protected guard={isLoggedIn}>
-    <Stack.Screen name="(tabs)" />
+  <Stack.Protected guard={isLoggedIn && auth.hasChild}>
+    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+  </Stack.Protected>
+  <Stack.Protected guard={isLoggedIn && !auth.hasChild}>
+    <Stack.Screen name="child-register" options={{ headerShown: false }} />
   </Stack.Protected>
   <Stack.Protected guard={!isLoggedIn}>
-    <Stack.Screen name="sign-in" />
+    <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+    <Stack.Screen name="sign-up" />
   </Stack.Protected>
 </Stack>
 ```
 
+認証状態は `useAuthProvider()` が提供する `session` と `hasChild` で制御。`AuthContext.Provider` でラップ。
+
+## タブ構成（4タブ）
+
+`app/(tabs)/_layout.tsx` で定義:
+- `index` — ホーム（日記一覧）
+- `write` — 書く（日記作成）
+- `memories` — 思い出（振り返り）
+- `settings` — 設定
+
 ## Typed Routes
 
-`app.json` の `experiments.typedRoutes: true` が有効。`router.push()` や `<Link>` の `href` にはリテラル型が効くため、存在しないルートへの遷移をコンパイル時に検出できる。
-
-## レイアウトグループ
-
-`(groupName)` ディレクトリで URL パスに影響を与えずにレイアウトをネストできる。認証/非認証で `(auth)` と `(app)` に分けるのが一般的なパターン。
+`app.json` の `experiments.typedRoutes: true` が有効。`router.push()` や `<Link>` の `href` にはリテラル型が効く。
 
 ## モーダル
 
@@ -33,15 +44,13 @@ globs: app/**
 
 ## unstable_settings.anchor
 
-レイアウト内のデフォルト遷移先を指定。タブグループの初期タブ制御に使用。
-
-## プラットフォーム固有コード
-
-- ファイル拡張子で分岐: `.ios.tsx`, `.android.tsx`, `.web.ts`, `.native.ts`
-- `Platform.select()` や `Platform.OS` による分岐は同一ファイル内の小さな差異に使用
-- 大きな実装差異がある場合はファイルを分ける
+`app/_layout.tsx` で `anchor: '(tabs)'` を設定。タブグループがデフォルト遷移先。
 
 ## New Architecture & React Compiler
 
-- `app.json` で `newArchEnabled: true` が有効。Fabric レンダラーと TurboModules を使用。
-- `experiments.reactCompiler: true` が有効。手動の `useMemo` / `useCallback` は不要（コンパイラが自動最適化）。
+- `app.json` で `newArchEnabled: true` が有効。
+- `experiments.reactCompiler: true` が有効。手動の `useMemo` / `useCallback` は基本不要（コンパイラが自動最適化）。ただし `useEffect` の依存配列はプリミティブ値を使うこと（オブジェクト参照の変化で不要な再実行を防ぐ）。
+
+## ボタンのテーマ対応
+
+tint 色をボタン背景に使う場合、テキスト色はハードコードせず `useThemeColor({}, 'background')` を使用。ダークモードでの視認性を確保。
