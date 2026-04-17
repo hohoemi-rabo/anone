@@ -5,13 +5,13 @@ import { ChildHeader } from '@/components/child-header'
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
 
-export default function HomeScreen() {
+export default function MemoriesScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ChildHeader />
       <ThemedView style={styles.container}>
-        <ThemedText type="subtitle">日記一覧</ThemedText>
-        <ThemedText>ここに日記が表示されます</ThemedText>
+        <ThemedText type="subtitle">思い出</ThemedText>
+        <ThemedText>ここに振り返り機能が表示されます</ThemedText>
       </ThemedView>
     </SafeAreaView>
   )
