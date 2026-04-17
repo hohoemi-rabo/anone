@@ -23,6 +23,7 @@ export default function SignUpScreen() {
   const textColor = useThemeColor({}, 'text')
   const tintColor = useThemeColor({}, 'tint')
   const iconColor = useThemeColor({}, 'icon')
+  const backgroundColor = useThemeColor({}, 'background')
 
   const handleSignUp = async () => {
     if (!email || !password) {
@@ -86,7 +87,7 @@ export default function SignUpScreen() {
             onPress={handleSignUp}
             disabled={loading}
           >
-            <ThemedText style={styles.buttonText}>
+            <ThemedText style={[styles.buttonText, { color: backgroundColor }]}>
               {loading ? '登録中...' : 'アカウント作成'}
             </ThemedText>
           </Pressable>
@@ -140,7 +141,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buttonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },

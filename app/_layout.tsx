@@ -27,14 +27,18 @@ export default function RootLayout() {
   }
 
   const isLoggedIn = !!auth.session
+  const needsChildRegistration = isLoggedIn && !auth.hasChild
 
   return (
     <AuthContext.Provider value={auth}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
-          <Stack.Protected guard={isLoggedIn}>
+          <Stack.Protected guard={isLoggedIn && auth.hasChild}>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+          </Stack.Protected>
+          <Stack.Protected guard={needsChildRegistration}>
+            <Stack.Screen name="child-register" options={{ headerShown: false }} />
           </Stack.Protected>
           <Stack.Protected guard={!isLoggedIn}>
             <Stack.Screen name="sign-in" options={{ headerShown: false }} />

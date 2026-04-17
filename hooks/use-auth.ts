@@ -6,9 +6,11 @@ import { supabase } from '@/lib/supabase'
 type AuthContextType = {
   session: Session | null
   isLoading: boolean
+  hasChild: boolean
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
+  refreshChildStatus: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -26,17 +28,41 @@ export { AuthContext }
 export function useAuthProvider(): AuthContextType {
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [hasChild, setHasChild] = useState(false)
+
+  const checkChildStatus = async (userId: string) => {
+    const { data } = await supabase
+      .from('child_members')
+      .select('id')
+      .eq('user_id', userId)
+      .limit(1)
+    setHasChild(!!data && data.length > 0)
+  }
+
+  const refreshChildStatus = async () => {
+    if (session?.user.id) {
+      await checkChildStatus(session.user.id)
+    }
+  }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session)
+      if (session?.user.id) {
+        await checkChildStatus(session.user.id)
+      }
       setIsLoading(false)
     })
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session)
+      if (session?.user.id) {
+        await checkChildStatus(session.user.id)
+      } else {
+        setHasChild(false)
+      }
     })
 
     return () => subscription.unsubscribe()
@@ -57,5 +83,5 @@ export function useAuthProvider(): AuthContextType {
     if (error) throw error
   }
 
-  return { session, isLoading, signIn, signUp, signOut }
+  return { session, isLoading, hasChild, signIn, signUp, signOut, refreshChildStatus }
 }

@@ -23,6 +23,7 @@ export default function SignInScreen() {
   const textColor = useThemeColor({}, 'text')
   const tintColor = useThemeColor({}, 'tint')
   const iconColor = useThemeColor({}, 'icon')
+  const backgroundColor = useThemeColor({}, 'background')
 
   const handleSignIn = async () => {
     if (!email || !password) {
@@ -80,7 +81,7 @@ export default function SignInScreen() {
             onPress={handleSignIn}
             disabled={loading}
           >
-            <ThemedText style={styles.buttonText}>
+            <ThemedText style={[styles.buttonText, { color: backgroundColor }]}>
               {loading ? 'ログイン中...' : 'ログイン'}
             </ThemedText>
           </Pressable>
@@ -134,7 +135,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buttonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
