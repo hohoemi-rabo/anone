@@ -20,6 +20,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useChild } from '@/hooks/use-child'
 import { useThemeColor } from '@/hooks/use-theme-color'
 import { getAgeDisplay } from '@/lib/age'
+import { deletePhoto, type PickedImage, uploadDiaryPhoto, withTimeout } from '@/lib/image'
 import { supabase } from '@/lib/supabase'
 
 const MAX_TEXT_LENGTH = 500
@@ -45,7 +46,7 @@ export default function WriteScreen() {
   const { session } = useAuth()
   const { child } = useChild()
   const [text, setText] = useState('')
-  const [imageUri, setImageUri] = useState<string | null>(null)
+  const [image, setImage] = useState<PickedImage | null>(null)
   const [saving, setSaving] = useState(false)
 
   const textColor = useThemeColor({}, 'text')
@@ -66,25 +67,68 @@ export default function WriteScreen() {
     })
 
     if (!result.canceled && result.assets[0]) {
-      setImageUri(result.assets[0].uri)
+      const a = result.assets[0]
+      setImage({ uri: a.uri, width: a.width, height: a.height })
     }
   }
 
-  const uploadImage = async (childId: string, entryDate: string): Promise<string | null> => {
-    if (!imageUri) return null
+  const persist = async () => {
+    if (!child || !session) return
+    const entryDate = toISODate()
+    const userId = session.user.id
 
-    const ext = 'jpg'
-    const fileName = `${childId}/${entryDate}/${crypto.randomUUID()}.${ext}`
+    const { data: existingRows, error: selectError } = await withTimeout(
+      '既存チェック',
+      supabase
+        .from('diary_entries')
+        .select('id, photo_url')
+        .eq('child_id', child.id)
+        .eq('author_id', userId)
+        .eq('entry_date', entryDate)
+        .limit(1),
+    )
+    if (selectError) throw selectError
+    const existing = existingRows?.[0] ?? null
 
-    const response = await fetch(imageUri)
-    const blob = await response.blob()
+    if (existing) {
+      const confirmed = await new Promise<boolean>((resolve) => {
+        Alert.alert('今日の日記があります', '今日の日記を上書きしますか？', [
+          { text: 'キャンセル', style: 'cancel', onPress: () => resolve(false) },
+          { text: '上書き', onPress: () => resolve(true) },
+        ])
+      })
+      if (!confirmed) return false
 
-    const { error } = await supabase.storage
-      .from('diary-photos')
-      .upload(fileName, blob, { contentType: 'image/jpeg' })
+      if (image && existing.photo_url) {
+        await deletePhoto(existing.photo_url)
+      }
 
-    if (error) throw error
-    return fileName
+      const photoUrl = image
+        ? await uploadDiaryPhoto(child.id, entryDate, image)
+        : existing.photo_url
+      const { error } = await withTimeout(
+        '更新',
+        supabase
+          .from('diary_entries')
+          .update({ text: text.trim(), photo_url: photoUrl })
+          .eq('id', existing.id),
+      )
+      if (error) throw error
+    } else {
+      const photoUrl = image ? await uploadDiaryPhoto(child.id, entryDate, image) : null
+      const { error } = await withTimeout(
+        '登録',
+        supabase.from('diary_entries').insert({
+          child_id: child.id,
+          author_id: userId,
+          entry_date: entryDate,
+          text: text.trim(),
+          photo_url: photoUrl,
+        }),
+      )
+      if (error) throw error
+    }
+    return true
   }
 
   const handleSave = async () => {
@@ -94,63 +138,20 @@ export default function WriteScreen() {
     }
     if (!child || !session) return
 
-    const entryDate = toISODate()
-    const userId = session.user.id
-
     setSaving(true)
     try {
-      // 同日の日記チェック
-      const { data: existing } = await supabase
-        .from('diary_entries')
-        .select('id, photo_url')
-        .eq('child_id', child.id)
-        .eq('author_id', userId)
-        .eq('entry_date', entryDate)
-        .maybeSingle()
-
-      if (existing) {
-        const confirmed = await new Promise<boolean>((resolve) => {
-          Alert.alert(
-            '今日の日記があります',
-            '今日の日記を上書きしますか？',
-            [
-              { text: 'キャンセル', style: 'cancel', onPress: () => resolve(false) },
-              { text: '上書き', onPress: () => resolve(true) },
-            ]
-          )
-        })
-
-        if (!confirmed) {
-          setSaving(false)
-          return
-        }
-
-        // 既存の写真を削除（新しい写真がある場合）
-        if (imageUri && existing.photo_url) {
-          await supabase.storage.from('diary-photos').remove([existing.photo_url])
-        }
-
-        const photoUrl = imageUri ? await uploadImage(child.id, entryDate) : existing.photo_url
-        await supabase
-          .from('diary_entries')
-          .update({ text: text.trim(), photo_url: photoUrl })
-          .eq('id', existing.id)
-      } else {
-        const photoUrl = await uploadImage(child.id, entryDate)
-        await supabase.from('diary_entries').insert({
-          child_id: child.id,
-          author_id: userId,
-          entry_date: entryDate,
-          text: text.trim(),
-          photo_url: photoUrl,
-        })
+      const ok = await persist()
+      if (ok) {
+        setText('')
+        setImage(null)
+        router.navigate('/(tabs)')
       }
-
-      setText('')
-      setImageUri(null)
-      router.navigate('/(tabs)')
     } catch (error) {
-      Alert.alert('保存エラー', (error as Error).message)
+      const message = (error as Error).message ?? '保存に失敗しました'
+      Alert.alert('保存エラー', `${message}\n\n再試行しますか？`, [
+        { text: 'キャンセル', style: 'cancel' },
+        { text: '再試行', onPress: () => handleSave() },
+      ])
     } finally {
       setSaving(false)
     }
@@ -187,12 +188,12 @@ export default function WriteScreen() {
             {text.length}/{MAX_TEXT_LENGTH}
           </ThemedText>
 
-          {imageUri && (
+          {image && (
             <ThemedView style={styles.previewContainer}>
-              <Image source={{ uri: imageUri }} style={styles.preview} contentFit="cover" />
+              <Image source={{ uri: image.uri }} style={styles.preview} contentFit="cover" />
               <Pressable
                 style={styles.removeButton}
-                onPress={() => setImageUri(null)}
+                onPress={() => setImage(null)}
               >
                 <ThemedText style={styles.removeButtonText}>×</ThemedText>
               </Pressable>
@@ -203,7 +204,7 @@ export default function WriteScreen() {
         <ThemedView style={[styles.footer, { borderTopColor: iconColor }]}>
           <Pressable style={styles.photoButton} onPress={pickImage}>
             <ThemedText style={{ color: tintColor }}>
-              {imageUri ? '写真を変更' : '写真を追加'}
+              {image ? '写真を変更' : '写真を追加'}
             </ThemedText>
           </Pressable>
           <Pressable

@@ -10,6 +10,7 @@ import { ThemedView } from '@/components/themed-view'
 import { useAuth } from '@/hooks/use-auth'
 import { useChild } from '@/hooks/use-child'
 import { useThemeColor } from '@/hooks/use-theme-color'
+import { deletePhoto, getSignedPhotoUrl } from '@/lib/image'
 import { supabase } from '@/lib/supabase'
 
 type DiaryEntry = {
@@ -95,10 +96,8 @@ export default function HomeScreen() {
       const urls: Record<string, string> = {}
       for (const item of allEntries) {
         if (item.photo_url && !signedUrls[item.photo_url]) {
-          const { data } = await supabase.storage
-            .from('diary-photos')
-            .createSignedUrl(item.photo_url, 3600)
-          if (data?.signedUrl) urls[item.photo_url] = data.signedUrl
+          const signed = await getSignedPhotoUrl(item.photo_url)
+          if (signed) urls[item.photo_url] = signed
         }
       }
       if (Object.keys(urls).length > 0) {
@@ -133,7 +132,7 @@ export default function HomeScreen() {
         style: 'destructive',
         onPress: async () => {
           if (entry.photo_url) {
-            await supabase.storage.from('diary-photos').remove([entry.photo_url])
+            await deletePhoto(entry.photo_url)
           }
           await supabase.from('diary_entries').delete().eq('id', entry.id)
           setEntries((prev) => prev.filter((e) => e.id !== entry.id))

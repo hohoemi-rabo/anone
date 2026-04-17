@@ -90,11 +90,11 @@ components/
 |---|---------|------|
 | 01 | Supabase セットアップ & DB スキーマ | ✅ 完了 |
 | 02 | 認証基盤（Email/Password） | ✅ 完了 |
-| 03 | 子ども登録画面 | ✅ 完了（アイコン画像は07で対応） |
+| 03 | 子ども登録画面 | ✅ 完了 |
 | 04 | タブナビゲーション構成 | ✅ 完了 |
-| 05 | 日記作成画面 | ✅ 完了（画像圧縮は07で対応） |
+| 05 | 日記作成画面 | ✅ 完了 |
 | 06 | ホーム画面（日記一覧） | ✅ 完了 |
-| 07 | 画像処理 | 未着手 |
+| 07 | 画像処理 | ✅ 完了 |
 | 08 | 日記詳細モーダル | 未着手 |
 | 09 | 思い出画面 | 未着手 |
 | 10 | 設定画面 | 未着手 |
@@ -123,3 +123,6 @@ components/
 - **child_members RLS:** 自己参照サブクエリは RLS が再帰的に適用され読み取り不可になる。`user_id = auth.uid()` の直接参照を使うこと
 - **ボタンテキスト色:** tint 色をボタン背景に使う場合、テキスト色は `useThemeColor({}, 'background')` でコントラストを確保
 - **FlatList onEndReached:** `hasMore` は `false` で初期化。初回フェッチ前の重複取得を防ぐ
+- **UUID 生成:** RN ランタイムは `globalThis.crypto` を持たない。`expo-crypto` の `randomUUID()` を使う
+- **画像アップロード:** Expo Go で動く構成は `expo-file-system/legacy` の `readAsStringAsync(..., Base64)` + `atob` で ArrayBuffer 変換。`expo-file-system` v19 の新 `File` API は Expo Go 未対応
+- **`.maybeSingle()` 注意:** PostgREST の Accept ヘッダー依存で環境によっては挙動が揺れる。安全側は `.limit(1)` + 配列 index 参照

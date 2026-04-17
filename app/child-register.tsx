@@ -8,11 +8,14 @@ import {
   TextInput,
 } from 'react-native'
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
+import { Image } from 'expo-image'
+import * as ImagePicker from 'expo-image-picker'
 
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
 import { useAuth } from '@/hooks/use-auth'
 import { useThemeColor } from '@/hooks/use-theme-color'
+import { type PickedImage, uploadChildIcon } from '@/lib/image'
 import { supabase } from '@/lib/supabase'
 
 export default function ChildRegisterScreen() {
@@ -20,6 +23,7 @@ export default function ChildRegisterScreen() {
   const [name, setName] = useState('')
   const [birthday, setBirthday] = useState(new Date())
   const [showDatePicker, setShowDatePicker] = useState(false)
+  const [iconImage, setIconImage] = useState<PickedImage | null>(null)
   const [loading, setLoading] = useState(false)
 
   const textColor = useThemeColor({}, 'text')
@@ -48,6 +52,26 @@ export default function ChildRegisterScreen() {
     }
   }
 
+  const pickIcon = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (status !== 'granted') {
+      Alert.alert('権限エラー', '写真へのアクセスを許可してください')
+      return
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    })
+
+    if (!result.canceled && result.assets[0]) {
+      const a = result.assets[0]
+      setIconImage({ uri: a.uri, width: a.width, height: a.height })
+    }
+  }
+
   const handleRegister = async () => {
     const trimmedName = name.trim()
     if (!trimmedName) {
@@ -62,12 +86,24 @@ export default function ChildRegisterScreen() {
 
     setLoading(true)
     try {
-      const { error } = await supabase.rpc('create_child_with_owner', {
+      const { data: childId, error } = await supabase.rpc('create_child_with_owner', {
         child_name: trimmedName,
         child_birthday: toISODate(birthday),
       })
 
       if (error) throw error
+
+      if (iconImage && childId) {
+        try {
+          const iconPath = await uploadChildIcon(childId, iconImage)
+          await supabase.from('children').update({ icon_url: iconPath }).eq('id', childId)
+        } catch (iconError) {
+          Alert.alert(
+            'アイコンアップロード失敗',
+            `登録は完了しましたが、アイコン画像の保存に失敗しました。\n${(iconError as Error).message}`,
+          )
+        }
+      }
 
       await refreshChildStatus()
     } catch (error) {
@@ -93,6 +129,28 @@ export default function ChildRegisterScreen() {
         </ThemedView>
 
         <ThemedView style={styles.form}>
+          <ThemedView style={styles.iconField}>
+            <Pressable
+              onPress={pickIcon}
+              style={[styles.iconButton, { borderColor: iconColor }]}
+            >
+              {iconImage ? (
+                <Image source={{ uri: iconImage.uri }} style={styles.iconImage} contentFit="cover" />
+              ) : (
+                <ThemedText style={[styles.iconPlaceholder, { color: iconColor }]}>
+                  写真を{'\n'}選ぶ
+                </ThemedText>
+              )}
+            </Pressable>
+            {iconImage && (
+              <Pressable onPress={() => setIconImage(null)}>
+                <ThemedText style={[styles.iconRemoveText, { color: tintColor }]}>
+                  削除
+                </ThemedText>
+              </Pressable>
+            )}
+          </ThemedView>
+
           <ThemedView style={styles.field}>
             <ThemedText type="defaultSemiBold">名前（ニックネーム可）</ThemedText>
             <TextInput
@@ -150,7 +208,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 48,
+    marginBottom: 32,
   },
   title: {
     marginBottom: 8,
@@ -160,6 +218,30 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: 24,
+  },
+  iconField: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  iconButton: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  iconImage: {
+    width: '100%',
+    height: '100%',
+  },
+  iconPlaceholder: {
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  iconRemoveText: {
+    fontSize: 13,
   },
   field: {
     gap: 8,
