@@ -12,7 +12,8 @@ globs: app/**
 <Stack>
   <Stack.Protected guard={isLoggedIn && auth.hasChild}>
     <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+    <Stack.Screen name="diary/[id]/index" options={{ presentation: 'modal', animation: 'slide_from_right', animationDuration: 350 }} />
+    <Stack.Screen name="diary/[id]/edit" options={{ presentation: 'modal', animation: 'slide_from_right', animationDuration: 350 }} />
   </Stack.Protected>
   <Stack.Protected guard={isLoggedIn && !auth.hasChild}>
     <Stack.Screen name="child-register" options={{ headerShown: false }} />
@@ -40,7 +41,30 @@ globs: app/**
 
 ## モーダル
 
-`Stack.Screen` に `options={{ presentation: 'modal' }}` を指定。日記詳細画面などに使用。
+- `Stack.Screen` に `options={{ presentation: 'modal' }}` を指定。
+- 動的ルートでモーダルを作る場合、フォルダ構造は `app/diary/[id]/index.tsx`（詳細）と `app/diary/[id]/edit.tsx`（編集）のように階層化。`Stack.Screen name="diary/[id]/index"` で登録する。
+- **アニメーション調整:** Android の modal は `slide_from_bottom` が default だが、視覚的に `slide_from_right` + `animationDuration: 350` の方が馴染む場合がある（仕様次第で切替）。
+- **セーフエリア:** フッター（削除/編集ボタン等）が Android のシステムナビゲーションと重なるため、モーダル画面のルートを `<SafeAreaView edges={['bottom']}>` で囲む。
+- **モーダル内ナビゲーション:** `router.push('/diary/[id]/edit')` で編集モーダルを重ねる。`router.back()` で閉じて元モーダルへ戻る。
+
+## useFocusEffect（タブ復帰時の再取得）
+
+モーダルから戻った時にタブ画面を再取得する場合、`expo-router` から `useFocusEffect` を import する（`@react-navigation/native` ではない）:
+
+```tsx
+import { useFocusEffect } from 'expo-router'
+
+useFocusEffect(
+  useCallback(() => {
+    if (childId) {
+      fetchEntries()
+      fetchOneYearAgo()
+    }
+  }, [childId, fetchEntries, fetchOneYearAgo]),
+)
+```
+
+React Compiler が有効なので `useCallback` は厳密には不要だが、`useFocusEffect` の引数はメモ化する慣習で書く。
 
 ## unstable_settings.anchor
 

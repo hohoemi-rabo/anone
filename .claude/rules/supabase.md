@@ -28,7 +28,9 @@ const getStorage = () => {
 
 - すべてのテーブルで RLS を有効化。
 - ポリシーは `auth.uid()` を使用してユーザーを識別。
-- **注意:** `child_members` の SELECT ポリシーは `user_id = auth.uid()` の直接参照を使用。自己参照サブクエリ（`EXISTS (SELECT 1 FROM child_members ...)`）は RLS が再帰的に適用され読み取り不可になるため使わないこと。
+- **`child_members` の SELECT:** `user_id = auth.uid()` の直接参照を使用。自己参照サブクエリ（`EXISTS (SELECT 1 FROM child_members ...)`）は RLS が再帰的に適用され読み取り不可になる。
+- **`users` の SELECT:** 現状は `id = auth.uid()`（自分のみ）。家族メンバーの名前を UI に出す場合は `child_members` 経由で同じ子に属するユーザーを読めるよう policy 追加が必要（ticket 11 で対応予定）。
+- **`.maybeSingle()` より `.limit(1)`:** PostgREST の特殊 Accept ヘッダーに依存するため、環境によっては挙動が揺れる。安全側は `.limit(1)` + 配列 index 参照。
 
 ## DB Functions (SECURITY DEFINER)
 
@@ -49,8 +51,16 @@ const getStorage = () => {
 ## Storage
 
 - バケット: `diary-photos`（プライベート）
-- パス: `{child_id}/{entry_date}/{uuid}.jpg`
-- 表示: 署名付き URL（1時間有効）
+- パス形式:
+  - 日記写真: `{child_id}/{entry_date}/{uuid}.jpg`
+  - 子どもアイコン: `children/{child_id}/{uuid}.jpg`
+- 表示: 署名付き URL（1時間有効、`getSignedPhotoUrl` 経由）
+
+### Storage RLS（重要）
+
+- **SELECT / INSERT / UPDATE / DELETE の4種類すべて必要。** DELETE policy を入れ忘れると、アプリから削除したつもりでも silent に拒否されて孤児ファイルが残る。
+- `diary-photos` は上記2パターンの親フォルダ位置が違うため、uuid キャストで判定するとアイコン側でキャスト失敗して拒否される。`CASE WHEN (storage.foldername(name))[1] = 'children' THEN [2] ELSE [1] END` で分岐して判定。
+- `storage.objects` への直接 SQL DELETE は `storage.protect_delete()` トリガーでブロックされる。孤児ファイル清掃は Supabase Dashboard から。
 
 ## DB スキーマ
 

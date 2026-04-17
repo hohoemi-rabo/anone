@@ -49,7 +49,8 @@ app/
 lib/
 ├── supabase.ts          # Supabase クライアント初期化
 ├── database.types.ts    # 自動生成された型定義
-└── age.ts               # 生後日数・年齢計算ユーティリティ
+├── age.ts               # 生後日数・年齢計算ユーティリティ
+└── image.ts             # 画像圧縮・アップロード・署名URL・削除・タイムアウト
 hooks/
 ├── use-auth.ts          # 認証コンテキスト（session, hasChild, signIn/Up/Out）
 ├── use-child.ts         # 子ども情報取得フック
@@ -115,7 +116,7 @@ components/
 |--------|----------|------|
 | `expo-router.md` | `app/**` | 認証フロー、Typed Routes、レイアウト、New Architecture |
 | `supabase.md` | `lib/**`, `hooks/use-auth*` | クライアント初期化、RLS、環境変数、DB スキーマ |
-| `image-handling.md` | `lib/image*`, `app/**/write*` | 画像圧縮・Storage・表示 |
+| `image-handling.md` | `lib/image*`, `app/**/write*`, `app/child-register*`, `app/diary/**` | 画像圧縮・Storage・表示 |
 | `theming.md` | `constants/theme*`, `hooks/use-*-*` | テーマシステム・ダークモード |
 | `eas-build.md` | `eas.json`, `app.json` | ビルドプロファイル設定 |
 | `ticket-management.md` | `docs/**` | チケット TODO 管理ルール |
@@ -129,3 +130,8 @@ components/
 - **UUID 生成:** RN ランタイムは `globalThis.crypto` を持たない。`expo-crypto` の `randomUUID()` を使う
 - **画像アップロード:** Expo Go で動く構成は `expo-file-system/legacy` の `readAsStringAsync(..., Base64)` + `atob` で ArrayBuffer 変換。`expo-file-system` v19 の新 `File` API は Expo Go 未対応
 - **`.maybeSingle()` 注意:** PostgREST の Accept ヘッダー依存で環境によっては挙動が揺れる。安全側は `.limit(1)` + 配列 index 参照
+- **Storage RLS 複数パス対応:** `diary-photos` バケットは日記写真 (`{child_id}/...`) と子どもアイコン (`children/{child_id}/...`) で親フォルダ位置が違う。RLS は `CASE WHEN (storage.foldername(name))[1] = 'children' THEN [2] ELSE [1]` で分岐。uuid キャストだと icon パスで失敗して拒否される
+- **Storage DELETE policy 必須:** INSERT/SELECT のみだと削除が silent に拒否され、DB 行は消えるが画像は残る（孤児化）。`deletePhoto` は error を warn で握るため気付きにくい
+- **storage.objects 直接 DELETE 不可:** `storage.protect_delete()` トリガーで SQL 直接削除はブロック。孤児ファイルは Supabase Dashboard の Storage UI で手動削除
+- **Android モーダルのセーフエリア:** `presentation: 'modal'` のフッター（削除/編集ボタン等）は `SafeAreaView edges={['bottom']}` で囲まないとシステムナビゲーションと重なる
+- **タブ復帰時の再取得:** `@react-navigation/native` ではなく `expo-router` から `useFocusEffect` を import。モーダルから戻った時に一覧再取得する

@@ -8,11 +8,13 @@ globs: lib/image*,components/**/image*,components/**/photo*,app/**/write*,app/ch
 
 画像処理はすべて `lib/image.ts` 経由で行う。個別画面で storage API を直叩きしない。
 
-- `compressImage(uri)` — 圧縮
-- `uploadDiaryPhoto(childId, entryDate, uri)` — 日記写真アップロード
-- `uploadChildIcon(childId, uri)` — 子どもアイコンアップロード
-- `getSignedPhotoUrl(path)` — 署名URL取得（1時間有効）
-- `deletePhoto(path)` — Storage から削除
+- `PickedImage` 型 — `{ uri, width, height }`。`ImagePicker.launchImageLibraryAsync` の asset から作る
+- `compressImage(image: PickedImage)` — 圧縮後の uri を返す
+- `uploadDiaryPhoto(childId, entryDate, image)` — 日記写真アップロード、storage path を返す
+- `uploadChildIcon(childId, image)` — 子どもアイコンアップロード、storage path を返す
+- `getSignedPhotoUrl(path)` — 署名URL取得（1時間有効、失敗時 null）
+- `deletePhoto(path)` — Storage から削除（エラーは warn でログ、throw しない）
+- `withTimeout(label, promise, ms?)` — Supabase DB クエリ等の無限ハング防止用ラッパー（デフォルト30秒）
 
 ## 圧縮仕様
 
@@ -38,8 +40,14 @@ globs: lib/image*,components/**/image*,components/**/photo*,app/**/write*,app/ch
 ## 表示
 
 - `expo-image` を使用（キャッシュ活用）
+- 署名URL は 1時間で失効するため、長く開きっぱなしの画面では再取得必要（現状はモーダル毎回開き直しで OK）
 
 ## 制約 (Phase 1)
 
 - 日記写真は1日1枚のみ
 - 子どもアイコンは任意
+
+## Storage RLS（参照）
+
+- `diary-photos` バケットの RLS で DELETE が無いと silent に失敗して孤児ファイル化する。詳細は `.claude/rules/supabase.md` の Storage セクション参照。
+- `deletePhoto` は failure を warn でログのみ。明示的に throw させたい場合は呼び出し側で try/catch + storage.remove を直に叩く。
