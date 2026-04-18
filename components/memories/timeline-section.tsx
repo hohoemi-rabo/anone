@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Platform, SectionList, StyleSheet, View } from 'react-native'
+import { SectionList, StyleSheet, View } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import { DiaryCard } from '@/components/diary-card'
@@ -59,7 +59,8 @@ export function TimelineSection({
   const router = useRouter()
   const tintColor = useThemeColor({}, 'tint')
   const iconColor = useThemeColor({}, 'icon')
-  const headerBg = useThemeColor({ light: '#f6f7f8', dark: '#1f2123' }, 'background')
+  const borderColor = useThemeColor({}, 'border')
+  const cardColor = useThemeColor({}, 'card')
 
   const sections = useMemo(
     () => groupByMonth(entries, birthday),
@@ -82,27 +83,53 @@ export function TimelineSection({
       keyExtractor={(item) => item.id}
       stickySectionHeadersEnabled={false}
       renderSectionHeader={({ section }) => (
-        <View style={[styles.sectionHeader, { backgroundColor: headerBg }]}>
-          <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-            {section.title}
-          </ThemedText>
-          <ThemedText style={[styles.sectionRange, { color: iconColor }]}>
-            {section.rangeText}
-          </ThemedText>
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionHeaderRow}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
+              {section.title}
+            </ThemedText>
+            <ThemedText style={[styles.sectionRange, { color: iconColor }]}>
+              {section.rangeText}
+            </ThemedText>
+          </View>
+          <View style={[styles.sectionDivider, { backgroundColor: borderColor }]} />
         </View>
       )}
-      renderItem={({ item }) => {
+      renderItem={({ item, index, section }) => {
+        const isFirstInSection = index === 0
+        const isLastInSection = index === section.data.length - 1
         const hasPhoto = !!item.photo_url
         return (
-          <View style={hasPhoto ? [styles.photoEmphasis, { borderLeftColor: tintColor }] : undefined}>
-            <DiaryCard
-              entryDate={item.entry_date}
-              text={item.text}
-              photoUrl={item.photo_url ? signedUrls[item.photo_url] ?? null : null}
-              birthday={birthday}
-              onPress={() => router.push(`/diary/${item.id}`)}
-              authorName={authorNames[item.author_id] ?? null}
-            />
+          <View style={styles.row}>
+            <View style={styles.rail}>
+              <View
+                style={[
+                  styles.line,
+                  {
+                    backgroundColor: tintColor,
+                    top: isFirstInSection ? 24 : 0,
+                    bottom: isLastInSection ? '60%' : 0,
+                  },
+                ]}
+              />
+              <View
+                style={[
+                  hasPhoto ? styles.dotLarge : styles.dot,
+                  { backgroundColor: tintColor, borderColor: cardColor },
+                ]}
+              />
+            </View>
+            <View style={styles.cardWrap}>
+              <DiaryCard
+                entryDate={item.entry_date}
+                text={item.text}
+                photoUrl={item.photo_url ? signedUrls[item.photo_url] ?? null : null}
+                birthday={birthday}
+                onPress={() => router.push(`/diary/${item.id}`)}
+                authorName={authorNames[item.author_id] ?? null}
+                style={styles.timelineCard}
+              />
+            </View>
           </View>
         )
       }}
@@ -111,31 +138,73 @@ export function TimelineSection({
   )
 }
 
+const RAIL_WIDTH = 28
+const LINE_WIDTH = 2
+
 const styles = StyleSheet.create({
   list: {
-    paddingBottom: 16,
+    paddingBottom: 32,
   },
   sectionHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 28,
+    paddingBottom: 12,
+  },
+  sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginTop: 8,
+    justifyContent: 'space-between',
+    marginBottom: 10,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 22,
+    letterSpacing: 0.3,
   },
   sectionRange: {
     fontSize: 12,
+    fontWeight: '500',
   },
-  photoEmphasis: {
-    borderLeftWidth: 3,
-    marginLeft: 0,
-    ...Platform.select({
-      android: { elevation: 1 },
-      default: {},
-    }),
+  sectionDivider: {
+    height: StyleSheet.hairlineWidth,
+  },
+  row: {
+    flexDirection: 'row',
+    paddingLeft: 16,
+    paddingRight: 16,
+  },
+  rail: {
+    width: RAIL_WIDTH,
+    position: 'relative',
+    alignItems: 'center',
+  },
+  line: {
+    position: 'absolute',
+    left: (RAIL_WIDTH - LINE_WIDTH) / 2,
+    width: LINE_WIDTH,
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginTop: 22,
+    borderWidth: 2,
+    zIndex: 1,
+  },
+  dotLarge: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    marginTop: 20,
+    borderWidth: 3,
+    zIndex: 1,
+  },
+  cardWrap: {
+    flex: 1,
+    paddingLeft: 8,
+  },
+  timelineCard: {
+    marginHorizontal: 0,
+    marginVertical: 6,
   },
   empty: {
     flex: 1,

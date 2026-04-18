@@ -27,7 +27,7 @@ export default function InviteIssueScreen() {
   const [isLoading, setIsLoading] = useState(true)
 
   const tintColor = useThemeColor({}, 'tint')
-  const backgroundColor = useThemeColor({}, 'background')
+  const onTintColor = useThemeColor({}, 'onTint')
   const iconColor = useThemeColor({}, 'icon')
   const borderColor = useThemeColor({ light: '#e0e0e0', dark: '#333' }, 'icon')
 
@@ -67,7 +67,7 @@ export default function InviteIssueScreen() {
             style={[styles.button, { backgroundColor: tintColor }]}
             onPress={() => router.back()}
           >
-            <ThemedText style={[styles.buttonText, { color: backgroundColor }]}>
+            <ThemedText style={[styles.buttonText, { color: onTintColor }]}>
               閉じる
             </ThemedText>
           </Pressable>
@@ -115,7 +115,7 @@ export default function InviteIssueScreen() {
             style={[styles.button, { backgroundColor: tintColor }]}
             onPress={handleCopy}
           >
-            <ThemedText style={[styles.buttonText, { color: backgroundColor }]}>
+            <ThemedText style={[styles.buttonText, { color: onTintColor }]}>
               コピー
             </ThemedText>
           </Pressable>

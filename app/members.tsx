@@ -26,7 +26,7 @@ export default function MembersScreen() {
   const { members, refresh } = useFamilyMembers()
 
   const tintColor = useThemeColor({}, 'tint')
-  const backgroundColor = useThemeColor({}, 'background')
+  const onTintColor = useThemeColor({}, 'onTint')
   const iconColor = useThemeColor({}, 'icon')
   const borderColor = useThemeColor({ light: '#e0e0e0', dark: '#333' }, 'icon')
   const dangerColor = useThemeColor({ light: '#d33', dark: '#f66' }, 'tint')
@@ -50,7 +50,7 @@ export default function MembersScreen() {
             style={[styles.button, { backgroundColor: tintColor }]}
             onPress={() => router.back()}
           >
-            <ThemedText style={[styles.buttonText, { color: backgroundColor }]}>
+            <ThemedText style={[styles.buttonText, { color: onTintColor }]}>
               閉じる
             </ThemedText>
           </Pressable>

@@ -31,7 +31,7 @@ export default function ChildRegisterScreen() {
   const textColor = useThemeColor({}, 'text')
   const tintColor = useThemeColor({}, 'tint')
   const iconColor = useThemeColor({}, 'icon')
-  const backgroundColor = useThemeColor({}, 'background')
+  const onTintColor = useThemeColor({}, 'onTint')
 
   const formatDate = (date: Date) => {
     const y = date.getFullYear()
@@ -189,7 +189,7 @@ export default function ChildRegisterScreen() {
             onPress={handleRegister}
             disabled={loading}
           >
-            <ThemedText style={[styles.buttonText, { color: backgroundColor }]}>
+            <ThemedText style={[styles.buttonText, { color: onTintColor }]}>
               {loading ? '登録中...' : '登録する'}
             </ThemedText>
           </Pressable>

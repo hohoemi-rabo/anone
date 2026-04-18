@@ -24,7 +24,7 @@ export default function InviteJoinScreen() {
   const textColor = useThemeColor({}, 'text')
   const tintColor = useThemeColor({}, 'tint')
   const iconColor = useThemeColor({}, 'icon')
-  const backgroundColor = useThemeColor({}, 'background')
+  const onTintColor = useThemeColor({}, 'onTint')
 
   const handleJoin = async () => {
     const trimmed = code.trim().toUpperCase()
@@ -73,7 +73,7 @@ export default function InviteJoinScreen() {
             onPress={handleJoin}
             disabled={loading}
           >
-            <ThemedText style={[styles.buttonText, { color: backgroundColor }]}>
+            <ThemedText style={[styles.buttonText, { color: onTintColor }]}>
               {loading ? '参加処理中...' : '参加する'}
             </ThemedText>
           </Pressable>

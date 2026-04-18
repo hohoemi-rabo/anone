@@ -42,7 +42,7 @@ export default function DiaryDetailScreen() {
 
   const tintColor = useThemeColor({}, 'tint')
   const iconColor = useThemeColor({}, 'icon')
-  const backgroundColor = useThemeColor({}, 'background')
+  const onTintColor = useThemeColor({}, 'onTint')
 
   const fetchEntry = useCallback(async () => {
     if (!id) return
@@ -140,7 +140,7 @@ export default function DiaryDetailScreen() {
       <ThemedView style={styles.center}>
         <ThemedText style={{ color: iconColor }}>日記が見つかりません</ThemedText>
         <Pressable onPress={handleClose} style={[styles.closeAlt, { backgroundColor: tintColor }]}>
-          <ThemedText style={{ color: backgroundColor }}>閉じる</ThemedText>
+          <ThemedText style={{ color: onTintColor }}>閉じる</ThemedText>
         </Pressable>
       </ThemedView>
     )
@@ -197,7 +197,7 @@ export default function DiaryDetailScreen() {
               onPress={handleEdit}
               style={[styles.footerButton, styles.editButton, { backgroundColor: tintColor }]}
             >
-              <ThemedText style={[styles.editText, { color: backgroundColor }]}>編集</ThemedText>
+              <ThemedText style={[styles.editText, { color: onTintColor }]}>編集</ThemedText>
             </Pressable>
           </ThemedView>
         )}

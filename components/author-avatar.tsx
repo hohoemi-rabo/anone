@@ -9,7 +9,7 @@ type AuthorAvatarProps = {
 
 export function AuthorAvatar({ name, size = 24 }: AuthorAvatarProps) {
   const tintColor = useThemeColor({}, 'tint')
-  const backgroundColor = useThemeColor({}, 'background')
+  const onTintColor = useThemeColor({}, 'onTint')
 
   const initial = (name?.trim()[0] ?? '?').toUpperCase()
 
@@ -27,7 +27,7 @@ export function AuthorAvatar({ name, size = 24 }: AuthorAvatarProps) {
     >
       <Text
         style={{
-          color: backgroundColor,
+          color: onTintColor,
           fontSize: size * 0.55,
           fontWeight: '600',
           lineHeight: size * 0.7,

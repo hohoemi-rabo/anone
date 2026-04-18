@@ -29,7 +29,9 @@ export default function SettingsScreen() {
 
   const tintColor = useThemeColor({}, 'tint')
   const iconColor = useThemeColor({}, 'icon')
-  const borderColor = useThemeColor({ light: '#e0e0e0', dark: '#333' }, 'icon')
+  const borderColor = useThemeColor({}, 'border')
+  const surfaceColor = useThemeColor({}, 'surface')
+  const bgColor = useThemeColor({}, 'background')
 
   useEffect(() => {
     let cancelled = false
@@ -73,8 +75,11 @@ export default function SettingsScreen() {
   const version = Constants.expoConfig?.version ?? '—'
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.list}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: surfaceColor }]} edges={['top']}>
+      <ScrollView
+        style={{ backgroundColor: bgColor }}
+        contentContainerStyle={styles.list}
+      >
         <ThemedText type="defaultSemiBold" style={[styles.sectionLabel, { color: iconColor }]}>
           お子さまの情報
         </ThemedText>

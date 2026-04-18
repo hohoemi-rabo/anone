@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Alert, StyleSheet } from 'react-native'
+import { Alert, StyleSheet, View } from 'react-native'
 import { useFocusEffect } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { ChildHeader } from '@/components/child-header'
 import { CalendarSection } from '@/components/memories/calendar-section'
@@ -82,7 +81,7 @@ export default function MemoriesScreen() {
   if (!child) return null
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <View style={styles.safeArea}>
       <ChildHeader />
       <SegmentedControl
         options={SECTION_OPTIONS}
@@ -106,7 +105,7 @@ export default function MemoriesScreen() {
         />
       )}
       {activeSection === 'calendar' && <CalendarSection entries={entries} />}
-    </SafeAreaView>
+    </View>
   )
 }
 

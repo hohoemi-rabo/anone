@@ -57,7 +57,7 @@ export default function DiaryEditScreen() {
   const textColor = useThemeColor({}, 'text')
   const tintColor = useThemeColor({}, 'tint')
   const iconColor = useThemeColor({}, 'icon')
-  const backgroundColor = useThemeColor({}, 'background')
+  const onTintColor = useThemeColor({}, 'onTint')
 
   useEffect(() => {
     if (!id) return
@@ -216,8 +216,11 @@ export default function DiaryEditScreen() {
         </ScrollView>
 
         <ThemedView style={[styles.footer, { borderTopColor: iconColor }]}>
-          <Pressable style={styles.photoButton} onPress={pickImage}>
-            <ThemedText style={{ color: tintColor }}>
+          <Pressable
+            style={[styles.photoButton, { backgroundColor: tintColor }]}
+            onPress={pickImage}
+          >
+            <ThemedText style={[styles.photoButtonText, { color: onTintColor }]}>
               {photo.kind === 'none' ? '写真を追加' : '写真を変更'}
             </ThemedText>
           </Pressable>
@@ -226,7 +229,7 @@ export default function DiaryEditScreen() {
             onPress={handleUpdate}
             disabled={saving}
           >
-            <ThemedText style={[styles.saveButtonText, { color: backgroundColor }]}>
+            <ThemedText style={[styles.saveButtonText, { color: onTintColor }]}>
               {saving ? '更新中...' : '更新'}
             </ThemedText>
           </Pressable>
@@ -308,7 +311,13 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   photoButton: {
-    padding: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 16,
+  },
+  photoButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   saveButton: {
     paddingHorizontal: 24,

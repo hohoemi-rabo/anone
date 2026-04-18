@@ -7,11 +7,11 @@ import {
   ScrollView,
   StyleSheet,
   TextInput,
+  View,
 } from 'react-native'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 import { useRouter } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { ChildHeader } from '@/components/child-header'
 import { ThemedText } from '@/components/themed-text'
@@ -52,7 +52,7 @@ export default function WriteScreen() {
   const textColor = useThemeColor({}, 'text')
   const tintColor = useThemeColor({}, 'tint')
   const iconColor = useThemeColor({}, 'icon')
-  const backgroundColor = useThemeColor({}, 'background')
+  const onTintColor = useThemeColor({}, 'onTint')
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
@@ -159,7 +159,7 @@ export default function WriteScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <View style={styles.safeArea}>
       <ChildHeader />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -203,8 +203,11 @@ export default function WriteScreen() {
         </ScrollView>
 
         <ThemedView style={[styles.footer, { borderTopColor: iconColor }]}>
-          <Pressable style={styles.photoButton} onPress={pickImage}>
-            <ThemedText style={{ color: tintColor }}>
+          <Pressable
+            style={[styles.photoButton, { backgroundColor: tintColor }]}
+            onPress={pickImage}
+          >
+            <ThemedText style={[styles.photoButtonText, { color: onTintColor }]}>
               {image ? '写真を変更' : '写真を追加'}
             </ThemedText>
           </Pressable>
@@ -213,13 +216,13 @@ export default function WriteScreen() {
             onPress={handleSave}
             disabled={saving}
           >
-            <ThemedText style={[styles.saveButtonText, { color: backgroundColor }]}>
+            <ThemedText style={[styles.saveButtonText, { color: onTintColor }]}>
               {saving ? '保存中...' : '保存'}
             </ThemedText>
           </Pressable>
         </ThemedView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   )
 }
 
@@ -290,7 +293,13 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   photoButton: {
-    padding: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 16,
+  },
+  photoButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   saveButton: {
     paddingHorizontal: 24,

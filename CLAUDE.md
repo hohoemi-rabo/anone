@@ -75,6 +75,19 @@ components/
     └── calendar-section.tsx         # react-native-calendars
 ```
 
+## UI / デザインシステム
+
+「あのね。」のブランドパレット（**ライトモード固定**、`app.json` `userInterfaceStyle: "light"`）:
+
+- **背景**: 白 `#FFFFFF`
+- **ヘッダー / ボトムタブ (`surface`)**: ピーチ `#E8A595`
+- **CTA / 全アクション (`tint`)**: ディープローズピンク `#D8607A` + 白文字 (`onTint`)
+- **アクセント (`accent`)**: ブルー `#5891B8`（差し色用、現状未使用）
+
+**3層サンドイッチ**: ピーチ帯ヘッダー → 白いメイン → ピーチ帯タブバー。`@react-navigation/native` の `DefaultTheme` を上書きする独自 `navLightTheme` を `app/_layout.tsx` で定義し、Stack スクリーン背景にも `Colors.background` を反映。
+
+詳細は `.claude/rules/theming.md` を参照。
+
 ## Authentication Flow (3-tier Route Protection)
 
 ```
@@ -143,7 +156,7 @@ components/
 | `expo-router.md` | `app/**` | 認証フロー、Typed Routes、レイアウト、New Architecture |
 | `supabase.md` | `lib/**`, `hooks/use-auth*`, `hooks/use-child*`, `hooks/use-family-members*` | クライアント初期化、RLS、環境変数、DB スキーマ |
 | `image-handling.md` | `lib/image*`, `app/**/write*`, `app/child-register*`, `app/diary/**` | 画像圧縮・Storage・表示 |
-| `theming.md` | `constants/theme*`, `hooks/use-*-*` | テーマシステム・ダークモード |
+| `theming.md` | `constants/theme*`, `hooks/use-color-scheme*`, `hooks/use-theme-color*`, `components/themed-*`, `components/child-header*`, `components/diary-card*`, `components/author-avatar*`, `components/memories/segmented-control*`, `app/_layout*`, `app/(tabs)/_layout*` | カラーパレット・トークン・nav theme・コンポーネント規約 |
 | `eas-build.md` | `eas.json`, `app.json` | ビルドプロファイル設定 |
 | `ticket-management.md` | `docs/**` | チケット TODO 管理ルール |
 
@@ -165,3 +178,7 @@ components/
 - **Web からの画像アップロード未対応:** `lib/image.ts` は `expo-file-system/legacy` の `readAsStringAsync` に依存しており Native 専用。Web では画像選択は出るが保存時にエラーになる。Phase 1 ターゲットは Android のため対応不要。Web は閲覧・テキスト入力のテスト用と割り切る
 - **`onAuthStateChange` の二重発火:** Supabase JS v2 は `getSession()` の結果と `onAuthStateChange` の `INITIAL_SESSION` の両方で同じセッションを返すため、両方 listen すると初回 setState が二重に走る。`onAuthStateChange` だけにするのが正解
 - **`useFocusEffect` で初回 fetch 兼用:** `expo-router` の `useFocusEffect` はマウント時にも発火し、deps が変化した時も焦点中なら再実行されるため、`useEffect` と同一内容を併記すると初回マウント時に同じ fetch が二重に走る。どちらか片方にする（タブ復帰時の再フェッチが要るなら `useFocusEffect` に統一）
+- **ナビゲーション背景の上書き:** `@react-navigation/native` の `DefaultTheme` は Stack スクリーン背景に `rgb(242,242,242)` を当てるので、`Colors.background` を反映するには `app/_layout.tsx` で独自 `navLightTheme` を作って `ThemeProvider` に渡す。これをやらないと「ロード中は色付き、表示後は白」現象が起きる
+- **`app.json` の `userInterfaceStyle` 変更:** ネイティブ層の設定なので Metro の fast refresh では反映されない。Expo Go / dev build を完全終了して再起動が必要
+- **Image に直接 `flex: number` を当てない:** Image が intrinsic サイズに引っ張られて巨大化することがある。**View でラップして View 側に flex を持たせ、Image は `position: 'absolute'` で wrap いっぱいに張る**のが安全
+- **`SafeAreaView` の二重ネスト回避:** `ChildHeader` は `SafeAreaView edges={['top']}` を内包してピーチ surface を描画するので、タブ画面側で `SafeAreaView edges={['top']}` を更にかけると安全領域が二重になる。タブ画面ルートは plain `<View>` で囲むだけにする

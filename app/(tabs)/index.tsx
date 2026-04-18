@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Alert, FlatList, Pressable, RefreshControl, StyleSheet } from 'react-native'
+import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native'
 import { useFocusEffect, useRouter } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { ChildHeader } from '@/components/child-header'
 import { DiaryCard } from '@/components/diary-card'
@@ -43,7 +42,7 @@ export default function HomeScreen() {
   }
 
   const tintColor = useThemeColor({}, 'tint')
-  const backgroundColor = useThemeColor({}, 'background')
+  const onTintColor = useThemeColor({}, 'onTint')
   const iconColor = useThemeColor({}, 'icon')
 
   const childId = child?.id
@@ -170,7 +169,7 @@ export default function HomeScreen() {
         style={[styles.writeButton, { backgroundColor: tintColor }]}
         onPress={() => router.navigate('/(tabs)/write')}
       >
-        <ThemedText style={[styles.writeButtonText, { color: backgroundColor }]}>
+        <ThemedText style={[styles.writeButtonText, { color: onTintColor }]}>
           日記を書く
         </ThemedText>
       </Pressable>
@@ -204,7 +203,7 @@ export default function HomeScreen() {
   if (!child) return null
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <View style={styles.safeArea}>
       <ChildHeader />
       <FlatList
         data={entries}
@@ -231,7 +230,7 @@ export default function HomeScreen() {
         onEndReachedThreshold={0.5}
         contentContainerStyle={entries.length === 0 ? styles.emptyContainer : styles.list}
       />
-    </SafeAreaView>
+    </View>
   )
 }
 

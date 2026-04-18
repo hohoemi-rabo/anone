@@ -13,6 +13,31 @@ import {
   useFamilyMembersProvider,
 } from '@/hooks/use-family-members'
 import { ThemedView } from '@/components/themed-view'
+import { Colors } from '@/constants/theme'
+
+const navLightTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: Colors.light.background,
+    card: Colors.light.card,
+    text: Colors.light.text,
+    primary: Colors.light.tint,
+    border: Colors.light.border,
+  },
+}
+
+const navDarkTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: Colors.dark.background,
+    card: Colors.dark.card,
+    text: Colors.dark.text,
+    primary: Colors.dark.tint,
+    border: Colors.dark.border,
+  },
+}
 
 function ChildProviderWrapper({ children }: { children: ReactNode }) {
   const value = useChildProvider()
@@ -38,7 +63,7 @@ export default function RootLayout() {
 
   if (auth.isLoading) {
     return (
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={colorScheme === 'dark' ? navDarkTheme : navLightTheme}>
         <ThemedView style={styles.loading}>
           <ActivityIndicator size="large" />
         </ThemedView>
@@ -53,7 +78,7 @@ export default function RootLayout() {
     <AuthContext.Provider value={auth}>
       <ChildProviderWrapper>
         <FamilyMembersProviderWrapper>
-          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <ThemeProvider value={colorScheme === 'dark' ? navDarkTheme : navLightTheme}>
             <Stack>
               <Stack.Protected guard={isLoggedIn && auth.hasChild}>
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

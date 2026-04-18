@@ -44,7 +44,7 @@ export default function ChildEditScreen() {
   const textColor = useThemeColor({}, 'text')
   const tintColor = useThemeColor({}, 'tint')
   const iconColor = useThemeColor({}, 'icon')
-  const backgroundColor = useThemeColor({}, 'background')
+  const onTintColor = useThemeColor({}, 'onTint')
 
   useEffect(() => {
     if (child) {
@@ -69,7 +69,7 @@ export default function ChildEditScreen() {
             style={[styles.button, { backgroundColor: tintColor }]}
             onPress={() => router.back()}
           >
-            <ThemedText style={[styles.buttonText, { color: backgroundColor }]}>
+            <ThemedText style={[styles.buttonText, { color: onTintColor }]}>
               閉じる
             </ThemedText>
           </Pressable>
@@ -240,7 +240,7 @@ export default function ChildEditScreen() {
             onPress={handleSave}
             disabled={loading}
           >
-            <ThemedText style={[styles.buttonText, { color: backgroundColor }]}>
+            <ThemedText style={[styles.buttonText, { color: onTintColor }]}>
               {loading ? '保存中...' : '保存する'}
             </ThemedText>
           </Pressable>
