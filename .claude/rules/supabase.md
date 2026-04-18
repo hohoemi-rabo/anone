@@ -1,5 +1,5 @@
 ---
-globs: lib/**,hooks/use-auth*,hooks/use-child*
+globs: lib/**,hooks/use-auth*,hooks/use-child*,hooks/use-family-members*
 ---
 
 # Supabase ルール
@@ -30,13 +30,19 @@ const getStorage = () => {
 - ポリシーは `(select auth.uid())` で囲んで使用。`auth.uid()` 直書きは行ごとに評価されるため遅い（advisor の `auth_rls_initplan` 警告）。`select` で囲むと initplan で 1 回キャッシュされる。
 - FK 列には必ずインデックスを張る（`EXISTS (... WHERE user_id = (select auth.uid()))` 系のサブクエリ評価でも効く）。
 - **`child_members` の SELECT:** `user_id = (select auth.uid())` の直接参照を使用。自己参照サブクエリ（`EXISTS (SELECT 1 FROM child_members ...)`）は RLS が再帰的に適用され読み取り不可になる。
-- **`users` の SELECT:** 現状は `id = auth.uid()`（自分のみ）。家族メンバーの名前を UI に出す場合は `child_members` 経由で同じ子に属するユーザーを読めるよう policy 追加が必要（ticket 11 で対応予定）。
+- **`users` の SELECT:** `id = (select auth.uid())`（自分のみ）。家族メンバーの名前/アバター取得は本体 RLS を広げず、`get_family_members` SECURITY DEFINER 関数経由で取得する（自己参照リスク回避）。
 - **`.maybeSingle()` より `.limit(1)`:** PostgREST の特殊 Accept ヘッダーに依存するため、環境によっては挙動が揺れる。安全側は `.limit(1)` + 配列 index 参照。
 
 ## DB Functions (SECURITY DEFINER)
 
 - **`create_child_with_owner(child_name, child_birthday, child_icon_url)`** — 子ども登録と owner メンバーを一括作成。RLS の鶏と卵問題を回避。
 - **`handle_new_user()`** — `auth.users` への INSERT トリガーで `public.users` にレコード自動作成。
+- **`create_invite_code(p_child_id)`** — 招待コード発行。owner チェック + 6文字 hex + 24h expiry + 衝突リトライ 5 回。
+- **`redeem_invite_code(p_code)`** — 招待コード受け入れ。有効性 + 上限 5 人 + 重複チェック後に `child_members` 追加 + `used = true` 更新。
+- **`get_family_members(p_child_id)`** — 同 child のメンバー一覧（`child_members` SELECT RLS の自己限定を迂回）。
+- **`remove_family_member(p_child_id, p_user_id)`** — メンバー削除（owner のみ、自身不可）。
+- **`update_updated_at()`** — `diary_entries.updated_at` 自動更新トリガー。`SET search_path = ''` 設定済み（advisor の `function_search_path_mutable` 対応）。
+- 新規関数を追加する際は **必ず `SET search_path = ''` または `SET search_path = public`** を付与する。
 
 ## 認証フック (`hooks/use-auth.ts`)
 

@@ -137,7 +137,7 @@ components/
 | ルール | 対象 glob | 内容 |
 |--------|----------|------|
 | `expo-router.md` | `app/**` | 認証フロー、Typed Routes、レイアウト、New Architecture |
-| `supabase.md` | `lib/**`, `hooks/use-auth*` | クライアント初期化、RLS、環境変数、DB スキーマ |
+| `supabase.md` | `lib/**`, `hooks/use-auth*`, `hooks/use-child*`, `hooks/use-family-members*` | クライアント初期化、RLS、環境変数、DB スキーマ |
 | `image-handling.md` | `lib/image*`, `app/**/write*`, `app/child-register*`, `app/diary/**` | 画像圧縮・Storage・表示 |
 | `theming.md` | `constants/theme*`, `hooks/use-*-*` | テーマシステム・ダークモード |
 | `eas-build.md` | `eas.json`, `app.json` | ビルドプロファイル設定 |
@@ -158,3 +158,4 @@ components/
 - **Android モーダルのセーフエリア:** `presentation: 'modal'` のフッター（削除/編集ボタン等）は `SafeAreaView edges={['bottom']}` で囲まないとシステムナビゲーションと重なる
 - **タブ復帰時の再取得:** `@react-navigation/native` ではなく `expo-router` から `useFocusEffect` を import。モーダルから戻った時に一覧再取得する
 - **`Alert.alert` ボタン callback は Web で発火しない:** React Native Web の `Alert.alert(title, msg, [{ text, onPress }])` は内部で `window.alert()` にフォールバックし、**onPress コールバックが呼ばれない**。ナビゲーション処理は Alert の前後に直接書くこと（例: `router.back(); Alert.alert(...)`）
+- **Web からの画像アップロード未対応:** `lib/image.ts` は `expo-file-system/legacy` の `readAsStringAsync` に依存しており Native 専用。Web では画像選択は出るが保存時にエラーになる。Phase 1 ターゲットは Android のため対応不要。Web は閲覧・テキスト入力のテスト用と割り切る
