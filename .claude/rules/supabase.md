@@ -44,16 +44,32 @@ const getStorage = () => {
 - **`update_updated_at()`** — `diary_entries.updated_at` 自動更新トリガー。`SET search_path = ''` 設定済み（advisor の `function_search_path_mutable` 対応）。
 - 新規関数を追加する際は **必ず `SET search_path = ''` または `SET search_path = public`** を付与する。
 
+## Provider パターン（共有データの単一 fetch 化）
+
+`useAuth` / `useChild` / `useFamilyMembers` はすべて **Context Provider** で実装し、`app/_layout.tsx` で 1 度だけマウントする。複数コンポーネントが同じ hook を呼んでも fetch は 1 回。素のフックにすると同一画面内で重複 fetch が発生するので必ず Provider 経由にすること。
+
+各フックは `useXxx()`（context 読み出し）と `useXxxProvider()`（state を持つ実装）の 2 関数構成。`_layout.tsx` の Provider Wrapper コンポーネントで `useXxxProvider()` を呼び、`XxxContext.Provider` でラップする。
+
+階層: `AuthContext` → `ChildContext`（Auth 必要）→ `FamilyMembersContext`（Child 必要）。
+
 ## 認証フック (`hooks/use-auth.ts`)
 
 - `AuthContext` + `useAuth()` + `useAuthProvider()` の構成。
 - `session`, `isLoading`, `hasChild`, `signIn`, `signUp`, `signOut`, `refreshChildStatus` を提供。
-- `onAuthStateChange` でセッション変更を監視し、`child_members` の存在チェックも連動。
+- 初期化は `onAuthStateChange` のみ（`INITIAL_SESSION` イベントが必ず発火するので `getSession` は不要）。両方使うと初回 setState が二重になる。
 
 ## 子ども情報フック (`hooks/use-child.ts`)
 
-- `useChild()` で現在ログインユーザーの子ども情報（id, name, birthday, icon_url）を取得。
+- `ChildContext` + `useChild()` + `useChildProvider()` の構成。
+- `useChild()` で現在ログインユーザーの子ども情報（id, name, birthday, icon_url）と role を取得。
 - `child_members` → `children` の2段階クエリ。
+- `refresh()` でセッション後の再取得（招待コード redeem 後など）。
+
+## 家族メンバーフック (`hooks/use-family-members.ts`)
+
+- `FamilyMembersContext` + `useFamilyMembers()` + `useFamilyMembersProvider()` の構成。
+- `get_family_members` SECURITY DEFINER 関数経由で同じ child のメンバー一覧（user_id, name, avatar_url, role, joined_at）を取得。
+- `useChild()` の `child.id` を内部で参照するので Provider は `ChildProvider` の内側にマウントする必要あり。
 
 ## Storage
 

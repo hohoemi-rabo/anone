@@ -57,8 +57,8 @@ lib/
 └── image.ts             # 画像圧縮・アップロード・署名URL・削除・タイムアウト
 hooks/
 ├── use-auth.ts          # 認証コンテキスト（session, hasChild, signIn/Up/Out）
-├── use-child.ts         # 子ども情報取得フック（child, role, refresh）
-├── use-family-members.ts # 同 child のメンバー一覧（SECURITY DEFINER 関数経由）
+├── use-child.ts         # 子ども情報コンテキスト（child, role, refresh）
+├── use-family-members.ts # 家族メンバー一覧コンテキスト（SECURITY DEFINER 関数経由）
 ├── use-color-scheme.ts  # システムカラースキーム
 └── use-theme-color.ts   # テーマ色取得
 components/
@@ -84,6 +84,10 @@ components/
 ```
 
 `app/_layout.tsx` で `Stack.Protected` を3段階に分岐。`useAuth` フックの `session` と `hasChild` で制御。
+
+## Provider 階層（重複 fetch 回避）
+
+`app/_layout.tsx` で **AuthContext → ChildContext → FamilyMembersContext** の順にネスト。`useAuth` / `useChild` / `useFamilyMembers` はすべて Context 経由で、複数コンポーネントから呼んでも同じ Supabase クエリが共有される。新しい共有データを追加する時も同じパターンで Provider 化すること（素のフック化すると画面ごとに重複 fetch が発生する）。
 
 ## Supabase Project
 
@@ -159,3 +163,5 @@ components/
 - **タブ復帰時の再取得:** `@react-navigation/native` ではなく `expo-router` から `useFocusEffect` を import。モーダルから戻った時に一覧再取得する
 - **`Alert.alert` ボタン callback は Web で発火しない:** React Native Web の `Alert.alert(title, msg, [{ text, onPress }])` は内部で `window.alert()` にフォールバックし、**onPress コールバックが呼ばれない**。ナビゲーション処理は Alert の前後に直接書くこと（例: `router.back(); Alert.alert(...)`）
 - **Web からの画像アップロード未対応:** `lib/image.ts` は `expo-file-system/legacy` の `readAsStringAsync` に依存しており Native 専用。Web では画像選択は出るが保存時にエラーになる。Phase 1 ターゲットは Android のため対応不要。Web は閲覧・テキスト入力のテスト用と割り切る
+- **`onAuthStateChange` の二重発火:** Supabase JS v2 は `getSession()` の結果と `onAuthStateChange` の `INITIAL_SESSION` の両方で同じセッションを返すため、両方 listen すると初回 setState が二重に走る。`onAuthStateChange` だけにするのが正解
+- **`useFocusEffect` で初回 fetch 兼用:** `expo-router` の `useFocusEffect` はマウント時にも発火し、deps が変化した時も焦点中なら再実行されるため、`useEffect` と同一内容を併記すると初回マウント時に同じ fetch が二重に走る。どちらか片方にする（タブ復帰時の再フェッチが要るなら `useFocusEffect` に統一）
