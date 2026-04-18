@@ -54,6 +54,15 @@ export default function RootLayout() {
                 animationDuration: 350,
               }}
             />
+            <Stack.Screen
+              name="child-edit"
+              options={{
+                presentation: 'modal',
+                title: 'お子さまの情報',
+                animation: 'slide_from_right',
+                animationDuration: 350,
+              }}
+            />
           </Stack.Protected>
           <Stack.Protected guard={needsChildRegistration}>
             <Stack.Screen name="child-register" options={{ headerShown: false }} />

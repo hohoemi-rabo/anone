@@ -36,6 +36,7 @@ app/
 ├── sign-in.tsx          # ログイン画面（開発用 Email/Password）
 ├── sign-up.tsx          # アカウント作成画面（開発用）
 ├── child-register.tsx   # 子ども登録画面（初回オンボーディング）
+├── child-edit.tsx       # 子ども情報編集モーダル（owner のみ）
 ├── modal.tsx            # モーダル画面（placeholder）
 ├── diary/[id]/
 │   ├── index.tsx        # 日記詳細モーダル
@@ -45,7 +46,7 @@ app/
     ├── index.tsx        # ホーム（日記一覧）
     ├── write.tsx        # 書く（日記作成）
     ├── memories.tsx     # 思い出（振り返り）
-    └── settings.tsx     # 設定 ※未実装
+    └── settings.tsx     # 設定（子ども情報 + ログアウト + バージョン）
 lib/
 ├── supabase.ts          # Supabase クライアント初期化
 ├── database.types.ts    # 自動生成された型定義
@@ -53,7 +54,7 @@ lib/
 └── image.ts             # 画像圧縮・アップロード・署名URL・削除・タイムアウト
 hooks/
 ├── use-auth.ts          # 認証コンテキスト（session, hasChild, signIn/Up/Out）
-├── use-child.ts         # 子ども情報取得フック
+├── use-child.ts         # 子ども情報取得フック（child, role, refresh）
 ├── use-color-scheme.ts  # システムカラースキーム
 └── use-theme-color.ts   # テーマ色取得
 components/
@@ -107,7 +108,7 @@ components/
 | 07 | 画像処理 | ✅ 完了 |
 | 08 | 日記詳細モーダル | ✅ 完了 |
 | 09 | 思い出画面 | ✅ 完了 |
-| 10 | 設定画面 | 未着手 |
+| 10 | 設定画面 | 🟡 部分完了（家族共有・ポリシーリンクは依存待ち） |
 | 11 | 家族共有 | 未着手 |
 | 12 | Google OAuth | 未着手 |
 | 13 | EAS Build & リリース | 未着手 |
