@@ -28,7 +28,7 @@ export default function HomeScreen() {
   const router = useRouter()
   const { session } = useAuth()
   const { child } = useChild()
-  const { members } = useFamilyMembers(child?.id)
+  const { members } = useFamilyMembers()
   const [entries, setEntries] = useState<DiaryEntry[]>([])
   const [oneYearAgoEntry, setOneYearAgoEntry] = useState<DiaryEntry | null>(null)
   const [refreshing, setRefreshing] = useState(false)
@@ -91,13 +91,6 @@ export default function HomeScreen() {
   }, [childId])
 
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({})
-
-  useEffect(() => {
-    if (childId) {
-      fetchEntries()
-      fetchOneYearAgo()
-    }
-  }, [childId, fetchEntries, fetchOneYearAgo])
 
   useFocusEffect(
     useCallback(() => {

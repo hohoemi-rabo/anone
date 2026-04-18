@@ -23,7 +23,7 @@ export default function MembersScreen() {
   const router = useRouter()
   const { session } = useAuth()
   const { child, role } = useChild()
-  const { members, refresh } = useFamilyMembers(child?.id)
+  const { members, refresh } = useFamilyMembers()
 
   const tintColor = useThemeColor({}, 'tint')
   const backgroundColor = useThemeColor({}, 'background')

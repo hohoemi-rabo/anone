@@ -26,7 +26,7 @@ const SECTION_OPTIONS = [
 export default function MemoriesScreen() {
   const { session } = useAuth()
   const { child } = useChild()
-  const { members } = useFamilyMembers(child?.id)
+  const { members } = useFamilyMembers()
   const [entries, setEntries] = useState<MemoriesEntry[]>([])
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({})
   const [activeSection, setActiveSection] = useState<Section>('oneYearAgo')
@@ -55,10 +55,6 @@ export default function MemoriesScreen() {
     }
     if (data) setEntries(data)
   }, [childId])
-
-  useEffect(() => {
-    if (childId) fetchEntries()
-  }, [childId, fetchEntries])
 
   useFocusEffect(
     useCallback(() => {

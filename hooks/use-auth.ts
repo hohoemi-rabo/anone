@@ -46,14 +46,6 @@ export function useAuthProvider(): AuthContextType {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session)
-      if (session?.user.id) {
-        await checkChildStatus(session.user.id)
-      }
-      setIsLoading(false)
-    })
-
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
@@ -63,6 +55,7 @@ export function useAuthProvider(): AuthContextType {
       } else {
         setHasChild(false)
       }
+      setIsLoading(false)
     })
 
     return () => subscription.unsubscribe()

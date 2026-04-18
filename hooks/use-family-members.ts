@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
+import { useChild } from '@/hooks/use-child'
 import { supabase } from '@/lib/supabase'
 
 export type FamilyMember = {
@@ -10,7 +11,28 @@ export type FamilyMember = {
   joined_at: string
 }
 
-export function useFamilyMembers(childId: string | undefined) {
+type FamilyMembersContextType = {
+  members: FamilyMember[]
+  isLoading: boolean
+  refresh: () => Promise<void>
+}
+
+const FamilyMembersContext = createContext<FamilyMembersContextType | null>(null)
+
+export function useFamilyMembers() {
+  const ctx = useContext(FamilyMembersContext)
+  if (!ctx) {
+    throw new Error('useFamilyMembers must be used within FamilyMembersContext.Provider')
+  }
+  return ctx
+}
+
+export { FamilyMembersContext }
+
+export function useFamilyMembersProvider(): FamilyMembersContextType {
+  const { child } = useChild()
+  const childId = child?.id
+
   const [members, setMembers] = useState<FamilyMember[]>([])
   const [isLoading, setIsLoading] = useState(false)
 

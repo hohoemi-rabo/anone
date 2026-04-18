@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
-import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
+import { supabase } from '@/lib/supabase'
 
 type Child = {
   id: string
@@ -12,7 +12,26 @@ type Child = {
 
 type ChildRole = 'owner' | 'member' | null
 
+type ChildContextType = {
+  child: Child | null
+  role: ChildRole
+  isLoading: boolean
+  refresh: () => Promise<void>
+}
+
+const ChildContext = createContext<ChildContextType | null>(null)
+
 export function useChild() {
+  const ctx = useContext(ChildContext)
+  if (!ctx) {
+    throw new Error('useChild must be used within ChildContext.Provider')
+  }
+  return ctx
+}
+
+export { ChildContext }
+
+export function useChildProvider(): ChildContextType {
   const { session } = useAuth()
   const [child, setChild] = useState<Child | null>(null)
   const [role, setRole] = useState<ChildRole>(null)
