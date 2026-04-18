@@ -44,7 +44,7 @@ app/
     ├── _layout.tsx      # BottomTab 4タブ構成
     ├── index.tsx        # ホーム（日記一覧）
     ├── write.tsx        # 書く（日記作成）
-    ├── memories.tsx     # 思い出（振り返り）※未実装
+    ├── memories.tsx     # 思い出（振り返り）
     └── settings.tsx     # 設定 ※未実装
 lib/
 ├── supabase.ts          # Supabase クライアント初期化
@@ -60,7 +60,13 @@ components/
 ├── child-header.tsx     # 子どもの名前 + 生後日数ヘッダー
 ├── diary-card.tsx       # 日記カードコンポーネント
 ├── themed-text.tsx      # テーマ対応テキスト
-└── themed-view.tsx      # テーマ対応ビュー
+├── themed-view.tsx      # テーマ対応ビュー
+└── memories/
+    ├── types.ts                     # MemoriesEntry 型
+    ├── segmented-control.tsx        # 3ボタン切替UI
+    ├── one-year-ago-section.tsx     # 1年前の今日
+    ├── timeline-section.tsx         # 月別グルーピング SectionList
+    └── calendar-section.tsx         # react-native-calendars
 ```
 
 ## Authentication Flow (3-tier Route Protection)
@@ -100,7 +106,7 @@ components/
 | 06 | ホーム画面（日記一覧） | ✅ 完了 |
 | 07 | 画像処理 | ✅ 完了 |
 | 08 | 日記詳細モーダル | ✅ 完了 |
-| 09 | 思い出画面 | 未着手 |
+| 09 | 思い出画面 | ✅ 完了 |
 | 10 | 設定画面 | 未着手 |
 | 11 | 家族共有 | 未着手 |
 | 12 | Google OAuth | 未着手 |
