@@ -12,6 +12,7 @@ type OneYearAgoSectionProps = {
   entries: MemoriesEntry[]
   signedUrls: Record<string, string>
   birthday: string
+  authorNames: Record<string, string>
 }
 
 function formatOneYearAgoDate(): string {
@@ -27,6 +28,7 @@ export function OneYearAgoSection({
   entries,
   signedUrls,
   birthday,
+  authorNames,
 }: OneYearAgoSectionProps) {
   const router = useRouter()
   const tintColor = useThemeColor({}, 'tint')
@@ -59,6 +61,7 @@ export function OneYearAgoSection({
         photoUrl={entry.photo_url ? signedUrls[entry.photo_url] ?? null : null}
         birthday={birthday}
         onPress={() => router.push(`/diary/${entry.id}`)}
+        authorName={authorNames[entry.author_id] ?? null}
       />
     </ScrollView>
   )

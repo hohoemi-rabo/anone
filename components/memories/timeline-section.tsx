@@ -14,6 +14,7 @@ type TimelineSectionProps = {
   entries: MemoriesEntry[]
   signedUrls: Record<string, string>
   birthday: string
+  authorNames: Record<string, string>
 }
 
 type Section = {
@@ -53,6 +54,7 @@ export function TimelineSection({
   entries,
   signedUrls,
   birthday,
+  authorNames,
 }: TimelineSectionProps) {
   const router = useRouter()
   const tintColor = useThemeColor({}, 'tint')
@@ -99,6 +101,7 @@ export function TimelineSection({
               photoUrl={item.photo_url ? signedUrls[item.photo_url] ?? null : null}
               birthday={birthday}
               onPress={() => router.push(`/diary/${item.id}`)}
+              authorName={authorNames[item.author_id] ?? null}
             />
           </View>
         )

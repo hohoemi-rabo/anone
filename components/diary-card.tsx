@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 import { Image } from 'expo-image'
 
+import { AuthorAvatar } from '@/components/author-avatar'
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
 import { useThemeColor } from '@/hooks/use-theme-color'
@@ -13,6 +14,7 @@ type DiaryCardProps = {
   birthday: string
   onPress: () => void
   onLongPress?: () => void
+  authorName?: string | null
 }
 
 function formatEntryDate(dateStr: string): string {
@@ -31,6 +33,7 @@ export function DiaryCard({
   birthday,
   onPress,
   onLongPress,
+  authorName,
 }: DiaryCardProps) {
   const iconColor = useThemeColor({}, 'icon')
   const borderColor = useThemeColor({ light: '#e0e0e0', dark: '#333' }, 'icon')
@@ -47,6 +50,11 @@ export function DiaryCard({
           <ThemedText style={[styles.age, { color: iconColor }]}>
             {getAgeDisplay(birthday, new Date(entryDate + 'T00:00:00'))}
           </ThemedText>
+          {authorName && (
+            <View style={styles.authorWrap}>
+              <AuthorAvatar name={authorName} size={20} />
+            </View>
+          )}
         </ThemedView>
         {text && (
           <ThemedText numberOfLines={3} style={styles.text}>
@@ -77,8 +85,11 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
     gap: 8,
+  },
+  authorWrap: {
+    marginLeft: 'auto',
   },
   age: {
     fontSize: 12,

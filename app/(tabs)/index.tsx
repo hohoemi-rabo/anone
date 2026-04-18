@@ -9,6 +9,7 @@ import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
 import { useAuth } from '@/hooks/use-auth'
 import { useChild } from '@/hooks/use-child'
+import { useFamilyMembers } from '@/hooks/use-family-members'
 import { useThemeColor } from '@/hooks/use-theme-color'
 import { deletePhoto, getSignedPhotoUrl } from '@/lib/image'
 import { supabase } from '@/lib/supabase'
@@ -27,11 +28,18 @@ export default function HomeScreen() {
   const router = useRouter()
   const { session } = useAuth()
   const { child } = useChild()
+  const { members } = useFamilyMembers(child?.id)
   const [entries, setEntries] = useState<DiaryEntry[]>([])
   const [oneYearAgoEntry, setOneYearAgoEntry] = useState<DiaryEntry | null>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(false)
+
+  const authorNameOf = (authorId: string): string | null => {
+    if (members.length <= 1) return null
+    if (authorId === session?.user.id) return null
+    return members.find((m) => m.user_id === authorId)?.name ?? '家族のメンバー'
+  }
 
   const tintColor = useThemeColor({}, 'tint')
   const backgroundColor = useThemeColor({}, 'background')
@@ -184,6 +192,7 @@ export default function HomeScreen() {
           }
           birthday={child.birthday}
           onPress={() => router.push(`/diary/${oneYearAgoEntry.id}`)}
+          authorName={authorNameOf(oneYearAgoEntry.author_id)}
         />
       </ThemedView>
     )
@@ -207,6 +216,7 @@ export default function HomeScreen() {
             onLongPress={
               item.author_id === session?.user.id ? () => handleDelete(item) : undefined
             }
+            authorName={authorNameOf(item.author_id)}
           />
         )}
         ListHeaderComponent={renderHeader}

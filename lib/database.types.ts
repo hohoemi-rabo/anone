@@ -215,6 +215,33 @@ export type Database = {
         }
         Returns: string
       }
+      create_invite_code: {
+        Args: { p_child_id: string }
+        Returns: {
+          code: string
+          expires_at: string
+        }[]
+      }
+      get_family_members: {
+        Args: { p_child_id: string }
+        Returns: {
+          avatar_url: string
+          joined_at: string
+          name: string
+          role: string
+          user_id: string
+        }[]
+      }
+      redeem_invite_code: {
+        Args: { p_code: string }
+        Returns: {
+          child_id: string
+        }[]
+      }
+      remove_family_member: {
+        Args: { p_child_id: string; p_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

@@ -37,6 +37,9 @@ app/
 ├── sign-up.tsx          # アカウント作成画面（開発用）
 ├── child-register.tsx   # 子ども登録画面（初回オンボーディング）
 ├── child-edit.tsx       # 子ども情報編集モーダル（owner のみ）
+├── invite-issue.tsx     # 招待コード発行モーダル（owner のみ）
+├── invite-join.tsx      # 招待コード入力モーダル
+├── members.tsx          # メンバー管理モーダル（owner のみ）
 ├── modal.tsx            # モーダル画面（placeholder）
 ├── diary/[id]/
 │   ├── index.tsx        # 日記詳細モーダル
@@ -55,11 +58,13 @@ lib/
 hooks/
 ├── use-auth.ts          # 認証コンテキスト（session, hasChild, signIn/Up/Out）
 ├── use-child.ts         # 子ども情報取得フック（child, role, refresh）
+├── use-family-members.ts # 同 child のメンバー一覧（SECURITY DEFINER 関数経由）
 ├── use-color-scheme.ts  # システムカラースキーム
 └── use-theme-color.ts   # テーマ色取得
 components/
 ├── child-header.tsx     # 子どもの名前 + 生後日数ヘッダー
 ├── diary-card.tsx       # 日記カードコンポーネント
+├── author-avatar.tsx    # イニシャル色付き円（家族メンバー著者表示用）
 ├── themed-text.tsx      # テーマ対応テキスト
 ├── themed-view.tsx      # テーマ対応ビュー
 └── memories/
@@ -90,6 +95,10 @@ components/
 
 - `create_child_with_owner(child_name, child_birthday, child_icon_url)` — 子ども登録 + owner メンバー一括作成（SECURITY DEFINER）
 - `handle_new_user()` — Auth トリガーで `auth.users` → `public.users` に自動レコード作成
+- `create_invite_code(p_child_id)` — 招待コード発行（owner のみ、6文字hex、24h expiry、衝突リトライ）
+- `redeem_invite_code(p_code)` — 招待コード受け入れ（有効性 + 上限5人 + 重複チェック）
+- `get_family_members(p_child_id)` — 同 child のメンバー一覧（child_members SELECT RLS の自己限定を迂回）
+- `remove_family_member(p_child_id, p_user_id)` — メンバー削除（owner のみ、自身不可）
 
 ## Ticket Management
 
@@ -108,8 +117,8 @@ components/
 | 07 | 画像処理 | ✅ 完了 |
 | 08 | 日記詳細モーダル | ✅ 完了 |
 | 09 | 思い出画面 | ✅ 完了 |
-| 10 | 設定画面 | 🟡 部分完了（家族共有・ポリシーリンクは依存待ち） |
-| 11 | 家族共有 | 未着手 |
+| 10 | 設定画面 | 🟡 部分完了（ポリシーリンクは ticket 13 待ち） |
+| 11 | 家族共有 | ✅ 完了 |
 | 12 | Google OAuth | 未着手 |
 | 13 | EAS Build & リリース | 未着手 |
 
@@ -142,3 +151,4 @@ components/
 - **storage.objects 直接 DELETE 不可:** `storage.protect_delete()` トリガーで SQL 直接削除はブロック。孤児ファイルは Supabase Dashboard の Storage UI で手動削除
 - **Android モーダルのセーフエリア:** `presentation: 'modal'` のフッター（削除/編集ボタン等）は `SafeAreaView edges={['bottom']}` で囲まないとシステムナビゲーションと重なる
 - **タブ復帰時の再取得:** `@react-navigation/native` ではなく `expo-router` から `useFocusEffect` を import。モーダルから戻った時に一覧再取得する
+- **`Alert.alert` ボタン callback は Web で発火しない:** React Native Web の `Alert.alert(title, msg, [{ text, onPress }])` は内部で `window.alert()` にフォールバックし、**onPress コールバックが呼ばれない**。ナビゲーション処理は Alert の前後に直接書くこと（例: `router.back(); Alert.alert(...)`）

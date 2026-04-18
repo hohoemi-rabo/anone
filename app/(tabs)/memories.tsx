@@ -9,7 +9,9 @@ import { OneYearAgoSection } from '@/components/memories/one-year-ago-section'
 import { SegmentedControl } from '@/components/memories/segmented-control'
 import { TimelineSection } from '@/components/memories/timeline-section'
 import type { MemoriesEntry } from '@/components/memories/types'
+import { useAuth } from '@/hooks/use-auth'
 import { useChild } from '@/hooks/use-child'
+import { useFamilyMembers } from '@/hooks/use-family-members'
 import { getSignedPhotoUrl } from '@/lib/image'
 import { supabase } from '@/lib/supabase'
 
@@ -22,12 +24,23 @@ const SECTION_OPTIONS = [
 ]
 
 export default function MemoriesScreen() {
+  const { session } = useAuth()
   const { child } = useChild()
+  const { members } = useFamilyMembers(child?.id)
   const [entries, setEntries] = useState<MemoriesEntry[]>([])
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({})
   const [activeSection, setActiveSection] = useState<Section>('oneYearAgo')
 
   const childId = child?.id
+
+  const authorNames: Record<string, string> = {}
+  if (members.length > 1) {
+    for (const m of members) {
+      if (m.user_id !== session?.user.id) {
+        authorNames[m.user_id] = m.name ?? '家族のメンバー'
+      }
+    }
+  }
 
   const fetchEntries = useCallback(async () => {
     if (!childId) return
@@ -85,6 +98,7 @@ export default function MemoriesScreen() {
           entries={entries}
           signedUrls={signedUrls}
           birthday={child.birthday}
+          authorNames={authorNames}
         />
       )}
       {activeSection === 'timeline' && (
@@ -92,6 +106,7 @@ export default function MemoriesScreen() {
           entries={entries}
           signedUrls={signedUrls}
           birthday={child.birthday}
+          authorNames={authorNames}
         />
       )}
       {activeSection === 'calendar' && <CalendarSection entries={entries} />}

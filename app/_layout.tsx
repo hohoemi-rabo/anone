@@ -63,9 +63,38 @@ export default function RootLayout() {
                 animationDuration: 350,
               }}
             />
+            <Stack.Screen
+              name="invite-issue"
+              options={{
+                presentation: 'modal',
+                title: '招待コードを発行',
+                animation: 'slide_from_right',
+                animationDuration: 350,
+              }}
+            />
+            <Stack.Screen
+              name="members"
+              options={{
+                presentation: 'modal',
+                title: 'メンバー管理',
+                animation: 'slide_from_right',
+                animationDuration: 350,
+              }}
+            />
           </Stack.Protected>
           <Stack.Protected guard={needsChildRegistration}>
             <Stack.Screen name="child-register" options={{ headerShown: false }} />
+          </Stack.Protected>
+          <Stack.Protected guard={isLoggedIn}>
+            <Stack.Screen
+              name="invite-join"
+              options={{
+                presentation: 'modal',
+                title: '招待コードで参加',
+                animation: 'slide_from_right',
+                animationDuration: 350,
+              }}
+            />
           </Stack.Protected>
           <Stack.Protected guard={!isLoggedIn}>
             <Stack.Screen name="sign-in" options={{ headerShown: false }} />

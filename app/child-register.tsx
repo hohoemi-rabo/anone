@@ -10,6 +10,7 @@ import {
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
+import { useRouter } from 'expo-router'
 
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
@@ -19,6 +20,7 @@ import { type PickedImage, uploadChildIcon } from '@/lib/image'
 import { supabase } from '@/lib/supabase'
 
 export default function ChildRegisterScreen() {
+  const router = useRouter()
   const { refreshChildStatus } = useAuth()
   const [name, setName] = useState('')
   const [birthday, setBirthday] = useState(new Date())
@@ -191,6 +193,16 @@ export default function ChildRegisterScreen() {
               {loading ? '登録中...' : '登録する'}
             </ThemedText>
           </Pressable>
+
+          <Pressable
+            onPress={() => router.push('/invite-join')}
+            style={styles.inviteLink}
+            disabled={loading}
+          >
+            <ThemedText style={[styles.inviteLinkText, { color: tintColor }]}>
+              すでに招待コードをお持ちですか？
+            </ThemedText>
+          </Pressable>
         </ThemedView>
       </KeyboardAvoidingView>
     </ThemedView>
@@ -266,5 +278,14 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  inviteLink: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    marginTop: 4,
+  },
+  inviteLinkText: {
+    fontSize: 14,
+    textDecorationLine: 'underline',
   },
 })

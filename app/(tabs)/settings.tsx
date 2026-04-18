@@ -124,6 +124,45 @@ export default function SettingsScreen() {
         </ThemedView>
 
         <ThemedText type="defaultSemiBold" style={[styles.sectionLabel, { color: iconColor }]}>
+          家族共有
+        </ThemedText>
+        <ThemedView style={[styles.section, { borderColor }]}>
+          {role === 'owner' && (
+            <Pressable
+              style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
+              onPress={() => router.push('/invite-issue')}
+            >
+              <ThemedText style={[styles.rowLabel, { color: tintColor }]}>
+                家族を招待
+              </ThemedText>
+            </Pressable>
+          )}
+          {role !== 'owner' && (
+            <Pressable
+              style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
+              onPress={() => router.push('/invite-join')}
+            >
+              <ThemedText style={[styles.rowLabel, { color: tintColor }]}>
+                招待コードで参加
+              </ThemedText>
+            </Pressable>
+          )}
+          {role === 'owner' && (
+            <Pressable
+              style={({ pressed }) => [
+                styles.row,
+                { borderTopColor: borderColor, borderTopWidth: 1, opacity: pressed ? 0.6 : 1 },
+              ]}
+              onPress={() => router.push('/members')}
+            >
+              <ThemedText style={[styles.rowLabel, { color: tintColor }]}>
+                メンバー管理
+              </ThemedText>
+            </Pressable>
+          )}
+        </ThemedView>
+
+        <ThemedText type="defaultSemiBold" style={[styles.sectionLabel, { color: iconColor }]}>
           アカウント
         </ThemedText>
         <ThemedView style={[styles.section, { borderColor }]}>
