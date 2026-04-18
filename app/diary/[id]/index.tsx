@@ -66,10 +66,10 @@ export default function DiaryDetailScreen() {
     }, [fetchEntry]),
   )
 
+  const authorId = entry?.author_id
   useEffect(() => {
-    if (!entry) return
-    const isMine = entry.author_id === session?.user.id
-    if (isMine) {
+    if (!authorId) return
+    if (authorId === session?.user.id) {
       setAuthorName(null)
       return
     }
@@ -77,12 +77,12 @@ export default function DiaryDetailScreen() {
       const { data } = await supabase
         .from('users')
         .select('name')
-        .eq('id', entry.author_id)
+        .eq('id', authorId)
         .maybeSingle()
       setAuthorName(data?.name ?? '家族のメンバー')
     }
     fetchAuthor()
-  }, [entry, session?.user.id])
+  }, [authorId, session?.user.id])
 
   useEffect(() => {
     if (!entry?.photo_url) {

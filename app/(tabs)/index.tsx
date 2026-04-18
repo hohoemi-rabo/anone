@@ -35,10 +35,11 @@ export default function HomeScreen() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(false)
 
+  const memberNameById = new Map(members.map((m) => [m.user_id, m.name]))
   const authorNameOf = (authorId: string): string | null => {
     if (members.length <= 1) return null
     if (authorId === session?.user.id) return null
-    return members.find((m) => m.user_id === authorId)?.name ?? '家族のメンバー'
+    return memberNameById.get(authorId) ?? '家族のメンバー'
   }
 
   const tintColor = useThemeColor({}, 'tint')
@@ -107,14 +108,24 @@ export default function HomeScreen() {
     }, [childId, fetchEntries, fetchOneYearAgo]),
   )
 
+  const photoPathsKey = (() => {
+    const paths: string[] = []
+    if (oneYearAgoEntry?.photo_url) paths.push(oneYearAgoEntry.photo_url)
+    for (const e of entries) {
+      if (e.photo_url) paths.push(e.photo_url)
+    }
+    return paths.join('|')
+  })()
+
   useEffect(() => {
-    const allEntries = oneYearAgoEntry ? [oneYearAgoEntry, ...entries] : entries
+    if (!photoPathsKey) return
+    const paths = photoPathsKey.split('|')
     const resolve = async () => {
       const urls: Record<string, string> = {}
-      for (const item of allEntries) {
-        if (item.photo_url && !signedUrls[item.photo_url]) {
-          const signed = await getSignedPhotoUrl(item.photo_url)
-          if (signed) urls[item.photo_url] = signed
+      for (const path of paths) {
+        if (!signedUrls[path]) {
+          const signed = await getSignedPhotoUrl(path)
+          if (signed) urls[path] = signed
         }
       }
       if (Object.keys(urls).length > 0) {
@@ -123,7 +134,7 @@ export default function HomeScreen() {
     }
     resolve()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entries, oneYearAgoEntry])
+  }, [photoPathsKey])
 
   const handleRefresh = async () => {
     setRefreshing(true)
