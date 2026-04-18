@@ -127,8 +127,7 @@ export default function HomeScreen() {
 
   const handleRefresh = async () => {
     setRefreshing(true)
-    await fetchEntries()
-    await fetchOneYearAgo()
+    await Promise.all([fetchEntries(), fetchOneYearAgo()])
     setRefreshing(false)
   }
 

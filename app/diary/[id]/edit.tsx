@@ -120,24 +120,24 @@ export default function DiaryEditScreen() {
 
     setSaving(true)
     try {
-      let newPhotoPath: string | null = null
-      let oldPathToDelete: string | null = null
+      const uploadPromise =
+        photo.kind === 'new'
+          ? uploadDiaryPhoto(child.id, entryDate ?? '', photo.image)
+          : Promise.resolve<string | null>(photo.kind === 'existing' ? photo.path : null)
 
-      if (photo.kind === 'new') {
-        newPhotoPath = await uploadDiaryPhoto(child.id, entryDate ?? '', photo.image)
-      } else if (photo.kind === 'existing') {
-        newPhotoPath = photo.path
-      }
-
-      // 既存写真があって、差し替えか削除されたら古いパスを削除対象に
-      const { data: current } = await supabase
+      const currentPromise = supabase
         .from('diary_entries')
         .select('photo_url')
         .eq('id', id)
         .maybeSingle()
-      if (current?.photo_url && current.photo_url !== newPhotoPath) {
-        oldPathToDelete = current.photo_url
-      }
+
+      const [newPhotoPath, { data: current }] = await Promise.all([
+        uploadPromise,
+        currentPromise,
+      ])
+
+      const oldPathToDelete =
+        current?.photo_url && current.photo_url !== newPhotoPath ? current.photo_url : null
 
       const { error } = await withTimeout(
         '更新',

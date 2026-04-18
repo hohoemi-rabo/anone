@@ -99,13 +99,14 @@ export default function WriteScreen() {
       })
       if (!confirmed) return false
 
-      if (image && existing.photo_url) {
-        await deletePhoto(existing.photo_url)
-      }
-
-      const photoUrl = image
-        ? await uploadDiaryPhoto(child.id, entryDate, image)
-        : existing.photo_url
+      const [, photoUrl] = await Promise.all([
+        image && existing.photo_url
+          ? deletePhoto(existing.photo_url)
+          : Promise.resolve(),
+        image
+          ? uploadDiaryPhoto(child.id, entryDate, image)
+          : Promise.resolve(existing.photo_url),
+      ])
       const { error } = await withTimeout(
         '更新',
         supabase
