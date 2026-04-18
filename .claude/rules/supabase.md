@@ -27,8 +27,9 @@ const getStorage = () => {
 ## Row Level Security (RLS)
 
 - すべてのテーブルで RLS を有効化。
-- ポリシーは `auth.uid()` を使用してユーザーを識別。
-- **`child_members` の SELECT:** `user_id = auth.uid()` の直接参照を使用。自己参照サブクエリ（`EXISTS (SELECT 1 FROM child_members ...)`）は RLS が再帰的に適用され読み取り不可になる。
+- ポリシーは `(select auth.uid())` で囲んで使用。`auth.uid()` 直書きは行ごとに評価されるため遅い（advisor の `auth_rls_initplan` 警告）。`select` で囲むと initplan で 1 回キャッシュされる。
+- FK 列には必ずインデックスを張る（`EXISTS (... WHERE user_id = (select auth.uid()))` 系のサブクエリ評価でも効く）。
+- **`child_members` の SELECT:** `user_id = (select auth.uid())` の直接参照を使用。自己参照サブクエリ（`EXISTS (SELECT 1 FROM child_members ...)`）は RLS が再帰的に適用され読み取り不可になる。
 - **`users` の SELECT:** 現状は `id = auth.uid()`（自分のみ）。家族メンバーの名前を UI に出す場合は `child_members` 経由で同じ子に属するユーザーを読めるよう policy 追加が必要（ticket 11 で対応予定）。
 - **`.maybeSingle()` より `.limit(1)`:** PostgREST の特殊 Accept ヘッダーに依存するため、環境によっては挙動が揺れる。安全側は `.limit(1)` + 配列 index 参照。
 

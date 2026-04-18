@@ -91,6 +91,12 @@ components/
 - **Region:** ap-northeast-1（東京）
 - **環境変数:** `.env.local` で管理（`.gitignore` 対象）
 
+### DB Indexes
+
+- 全 FK 列にインデックス済み（`child_members.user_id` / `children.owner_id` / `diary_entries.author_id` / `invite_codes.child_id` / `invite_codes.created_by`）
+- ホーム一覧用 composite index `diary_entries (child_id, entry_date DESC)` 済み
+- すべての RLS ポリシーは `(select auth.uid())` で initplan 化済み
+
 ### DB Functions
 
 - `create_child_with_owner(child_name, child_birthday, child_icon_url)` — 子ども登録 + owner メンバー一括作成（SECURITY DEFINER）
